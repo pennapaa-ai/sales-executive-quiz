@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Executive Quiz – VRSteel</title>
+<style>
+  :root {
+    --primary: #1a3c5e;
+    --primary-light: #2563a8;
+    --accent: #e8931a;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* NAV */
+  nav { background: var(--primary); color: #fff; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; box-shadow: 0 2px 8px rgba(0,0,0,.2); position: sticky; top: 0; z-index: 100; }
+  nav .brand { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  nav .brand span { background: var(--accent); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: .85rem; }
+  nav .nav-links { display: flex; gap: 4px; }
+  nav button { background: transparent; color: rgba(255,255,255,.75); border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: .9rem; transition: all .2s; }
+  nav button:hover, nav button.active { background: rgba(255,255,255,.15); color: #fff; }
+
+  /* PAGES */
+  .page { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--card); border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); border: 1px solid var(--border); margin-bottom: 16px; }
+  .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+  .badge-draft { background: #fef3c7; color: #92400e; }
+  .badge-approved { background: #dcfce7; color: #166534; }
+  .badge-rejected { background: #fee2e2; color: #991b1b; }
+  .badge-published { background: #dbeafe; color: #1e40af; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; border: none; font-size: .9rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .btn-primary { background: var(--primary-light); color: #fff; }
+  .btn-primary:hover { background: var(--primary); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { filter: brightness(.9); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { filter: brightness(.9); }
+  .btn-warning { background: var(--warning); color: #fff; }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--bg); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* FORMS */
+  input, select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: .9rem; outline: none; transition: border .2s; background: #fff; }
+  input:focus, select:focus, textarea:focus { border-color: var(--primary-light); }
+  label { font-size: .85rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 6px; }
+  .form-group { margin-bottom: 16px; }
+
+  /* QUIZ */
+  .quiz-start { text-align: center; padding: 40px 20px; }
+  .quiz-start h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 12px; }
+  .quiz-start p { color: var(--muted); margin-bottom: 24px; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 999px; margin-bottom: 24px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--accent)); border-radius: 999px; transition: width .4s; }
+
+  .question-num { font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
+  .question-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; line-height: 1.6; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .2s; background: #fff; }
+  .option:hover:not(.disabled) { border-color: var(--primary-light); background: #eff6ff; }
+  .option.selected { border-color: var(--primary-light); background: #eff6ff; }
+  .option.correct { border-color: var(--success); background: #f0fdf4; }
+  .option.wrong { border-color: var(--danger); background: #fef2f2; }
+  .option.disabled { cursor: default; }
+  .option-letter { width: 28px; height: 28px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .85rem; flex-shrink: 0; }
+  .option.selected .option-letter { background: var(--primary-light); color: #fff; }
+  .option.correct .option-letter { background: var(--success); color: #fff; }
+  .option.wrong .option-letter { background: var(--danger); color: #fff; }
+
+  .explanation { margin-top: 14px; padding: 12px 16px; background: #fffbeb; border-left: 4px solid var(--warning); border-radius: 0 8px 8px 0; font-size: .9rem; color: #78350f; }
+
+  /* RESULT */
+  .result-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2.2rem; font-weight: 800; }
+  .result-pass { background: #dcfce7; color: #166534; border: 4px solid var(--success); }
+  .result-fail { background: #fee2e2; color: #991b1b; border: 4px solid var(--danger); }
+
+  /* ADMIN */
+  .quiz-set-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; transition: all .2s; }
+  .quiz-set-item:hover { border-color: var(--primary-light); }
+  .quiz-set-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .quiz-set-title { font-weight: 600; }
+  .quiz-set-meta { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+
+  .question-preview { background: var(--bg); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: .88rem; }
+  .question-preview-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .question-preview-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .q-text { font-weight: 600; margin-bottom: 6px; }
+  .q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .q-option { font-size: .82rem; color: var(--muted); }
+  .q-option.answer { color: var(--success); font-weight: 600; }
+
+  /* DASHBOARD */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid var(--border); }
+  .stat-value { font-size: 2rem; font-weight: 800; color: var(--primary); }
+  .stat-label { font-size: .82rem; color: var(--muted); margin-top: 4px; }
+
+  .leaderboard { width: 100%; border-collapse: collapse; }
+  .leaderboard th { padding: 10px 14px; background: var(--primary); color: #fff; text-align: left; font-size: .85rem; }
+  .leaderboard td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: .88rem; }
+  .leaderboard tr:hover td { background: var(--bg); }
+  .score-bar { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 999px; }
+
+  /* LOGIN */
+  .login-wrap { max-width: 420px; margin: 60px auto; }
+  .login-wrap .card { padding: 36px; }
+  .login-title { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; text-align: center; }
+  .login-sub { font-size: .88rem; color: var(--muted); text-align: center; margin-bottom: 28px; }
+
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: .88rem; margin-bottom: 16px; }
+  .alert-success { background: #dcfce7; color: #166534; }
+  .alert-error { background: #fee2e2; color: #991b1b; }
+  .alert-info { background: #dbeafe; color: #1e40af; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 8px; text-align: center; border-radius: 7px; cursor: pointer; font-size: .88rem; font-weight: 600; color: var(--muted); border: none; background: transparent; transition: all .2s; }
+  .tab.active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 28px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+
+  /* SHEETS CONFIG */
+  .sheets-config { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .q-options { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    nav .brand span { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="app-loading" style="position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="font-size:2.5rem">🏗️</div>
+  <div style="font-size:1.1rem;font-weight:700;color:#1a3c5e">VRSteel Sales Executive Quiz</div>
+  <div style="display:flex;gap:6px;align-items:center;color:#64748b;font-size:.9rem">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    กำลังโหลดข้อมูล...
+  </div>
+  <div id="app-loading-error" style="display:none;color:#ef4444;font-size:.85rem;margin-top:8px;text-align:center;max-width:320px"></div>
+</div>
+<style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+
+<nav>
+  <div class="brand">🏗️ VRSteel Quiz <span>Sales Executive</span></div>
+  <div class="nav-links" id="navLinks">
+    <button onclick="showPage('quiz')" id="nav-quiz" class="active">📝 ทำแบบทดสอบ</button>
+    <button onclick="showPage('practical')" id="nav-practical">✅ งานปฏิบัติ</button>
+    <button onclick="showPage('admin')" id="nav-admin">🛡️ Admin</button>
+    <button onclick="showPage('dashboard')" id="nav-dashboard" style="display:none">📊 Dashboard</button>
+  </div>
+</nav>
+
+<!-- =============== QUIZ PAGE =============== -->
+<div class="page active" id="page-quiz">
+  <div id="quiz-login-screen">
+    <div class="login-wrap">
+      <div class="card">
+        <div class="login-title">📝 Sales Executive Quiz</div>
+        <div class="login-sub">กรอกข้อมูลเพื่อเริ่มทำแบบทดสอบ</div>
+        <div id="quiz-login-alert"></div>
+        <div class="form-group">
+          <label>ชื่อ-นามสกุล</label>
+          <input type="text" id="q-name" placeholder="เช่น สมชาย ใจดี">
+        </div>
+        <div class="form-group">
+          <label>ประเภท</label>
+          <select id="q-role">
+            <option value="PSE_T1">PSE Team 1</option>
+            <option value="PSE_T2">PSE Team 2</option>
+            <option value="OSE_T1">OSE Team 1</option>
+            <option value="OSE_T2">OSE Team 2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>เลือกชุดข้อสอบ</label>
+          <select id="q-set-select"></select>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="startQuiz()">เริ่มทำแบบทดสอบ →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="quiz-screen" style="display:none; max-width:720px; margin:0 auto;">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-size:.88rem; color:var(--muted)" id="quiz-taker-info"></div>
+        <div style="font-size:.88rem; color:var(--muted)" id="quiz-timer">⏱️ 00:00</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="quiz-progress"></div></div>
+      <div class="question-num" id="q-num"></div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+      <div id="q-explanation" style="display:none" class="explanation"></div>
+      <div style="display:flex; justify-content:flex-end; margin-top:20px; gap:10px;">
+        <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" style="display:none">ข้อถัดไป →</button>
+        <button class="btn btn-success" id="btn-finish" onclick="finishQuiz()" style="display:none">ดูผลลัพธ์ 🎉</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="result-screen" style="display:none; max-width:640px; margin:0 auto;">
+    <div class="card" style="text-align:center">
+      <div class="result-circle" id="result-circle"></div>
+      <h2 id="result-title" style="margin-bottom:8px"></h2>
+      <p id="result-sub" style="color:var(--muted); margin-bottom:24px"></p>
+      <div style="background:var(--bg); border-radius:10px; padding:16px; margin-bottom:20px;" id="result-breakdown"></div>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:16px">
+        <button class="btn btn-outline" onclick="showPage('quiz')">ทำแบบทดสอบอีกครั้ง</button>
+      </div>
+      <div id="result-analysis" style="margin-top:4px;text-align:left"></div>
+    </div>
+    <!-- Answer Review -->
+    <div class="card" style="text-align:left">
+      <div class="card-title" style="margin-bottom:12px">📝 เฉลยรายข้อ</div>
+      <div id="result-review"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============== PRACTICAL PAGE =============== -->
+<div class="page" id="page-practical">
+  <div id="practical-login-screen">
+    <div class="login-wrap">
+      <div class="card">
+        <div class="login-title">✅ งานปฏิบัติจริงบน VRPortal</div>
+        <div class="login-sub">กรอกชื่อเพื่อดูสถานะงานปฏิบัติของคุณ</div>
+        <div class="form-group">
+          <label>ชื่อ-นามสกุล</label>
+          <input type="text" id="prac-name-input" placeholder="เช่น สมชาย ใจดี" onkeydown="if(event.key==='Enter')lookupPractical()">
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="lookupPractical()">ดูสถานะของฉัน →</button>
+        <div id="prac-alert" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+  <div id="practical-user-screen" style="display:none; max-width:640px; margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h1 style="font-size:1.2rem;font-weight:700;color:var(--primary)">✅ งานปฏิบัติของฉัน</h1>
+      <button class="btn btn-outline" onclick="document.getElementById('practical-login-screen').style.display='';document.getElementById('practical-user-screen').style.display='none'">← กลับ</button>
+    </div>
+    <div id="practical-user-body"></div>
+  </div>
+</div>
+
+<!-- =============== ADMIN PAGE =============== -->
+<div class="page" id="page-admin">
+  <div id="admin-login-screen">
+    <div class="login-wrap">
+      <div class="card">
+        <div class="login-title">🛡️ Admin Login</div>
+        <div class="login-sub">สำหรับผู้ดูแลระบบและ Reviewer เท่านั้น</div>
+        <div id="admin-alert"></div>
+        <div class="form-group">
+          <label>รหัสผ่าน Admin</label>
+          <input type="password" id="admin-pass" placeholder="กรอกรหัสผ่าน" onkeydown="if(event.key==='Enter')adminLogin()">
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="adminLogin()">เข้าสู่ระบบ Admin</button>
+        <p style="font-size:.78rem; color:var(--muted); margin-top:12px; text-align:center">รหัสเริ่มต้น: <strong>admin1234</strong> (เปลี่ยนได้ในการตั้งค่า)</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-panel" style="display:none">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+      <h1 style="font-size:1.3rem; font-weight:700; color:var(--primary)">🛡️ Admin Panel</h1>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="openGenerateModal()">✨ สร้าง Quiz ใหม่ (AI)</button>
+        <button class="btn btn-outline" onclick="showPage('dashboard')">📊 Dashboard</button>
+        <button class="btn btn-outline" onclick="openSettingsModal()">⚙️ ตั้งค่า</button>
+        <button class="btn btn-outline" onclick="adminLogout()">ออกจากระบบ</button>
+      </div>
+    </div>
+
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:16px">คำถามจะสุ่มจาก pool ใหม่ทุกครั้งที่มีคนเริ่มทำข้อสอบ</p>
+    <div id="admin-quiz-list"></div>
+
+    <div style="margin-top:32px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <h2 style="font-size:1.1rem;font-weight:700;color:var(--primary)">📝 แก้ไขคลังข้อสอบ</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="edit-bank-cat" onchange="renderBankEditor()" style="width:auto;padding:6px 10px;font-size:.85rem">
+            <option value="pse_ose_roles">บทบาท PSE & OSE (30 ข้อ)</option>
+            <option value="vrportal">VRPortal & ระบบ (23 ข้อ)</option>
+            <option value="activity_link">Activity Link & FL (38 ข้อ)</option>
+            <option value="order_link">Order Link & สถานะ (38 ข้อ)</option>
+            <option value="mini_cdp">Mini CDP (25 ข้อ)</option>
+          </select>
+        </div>
+      </div>
+      <div id="admin-bank-editor"></div>
+    </div>
+
+    <div style="margin-top:32px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <h2 style="font-size:1.1rem;font-weight:700;color:var(--primary)">📋 งานปฏิบัติจริงบน VRPortal</h2>
+        <span style="font-size:.82rem;color:var(--muted)">ติ๊กยืนยันเมื่อตรวจสอบว่า User ได้ทำจริงบนระบบแล้ว</span>
+      </div>
+      <!-- Auto-check toggle -->
+      <div id="auto-check-banner" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:10px;margin-bottom:14px;flex-wrap:wrap"></div>
+      <div id="admin-practical-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============== DASHBOARD PAGE =============== -->
+<div class="page" id="page-dashboard">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <h1 style="font-size:1.3rem; font-weight:700; color:var(--primary)">📊 Dashboard – ผลการทดสอบ</h1>
+    <div style="display:flex; gap:8px;">
+      <select id="dash-filter-role" onchange="renderDashboard()" style="width:auto; padding:8px 12px;">
+        <option value="">ทุกทีม</option>
+        <option value="PSE_T1">PSE T1</option>
+        <option value="PSE_T2">PSE T2</option>
+        <option value="OSE_T1">OSE T1</option>
+        <option value="OSE_T2">OSE T2</option>
+      </select>
+      <button class="btn btn-outline" onclick="showPage('admin')">⚙️ ตั้งค่าข้อสอบ</button>
+      <button class="btn btn-outline" onclick="exportCSV()">⬇️ Export CSV</button>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="dash-stats"></div>
+
+  <div class="card">
+    <div class="card-title">📋 ผลการทดสอบทั้งหมด</div>
+    <div style="overflow-x:auto;">
+      <table class="leaderboard" id="dash-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ชื่อ</th>
+            <th>ทีม</th>
+            <th>ชุดข้อสอบ</th>
+            <th>คะแนน</th>
+            <th>ผล</th>
+            <th>วันที่</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="dash-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📈 สถิติรายคน (ค่าเฉลี่ย)</div>
+    <div id="dash-per-person"></div>
+  </div>
+
+  <div class="card" id="dash-practical-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin-bottom:0">✅ งานปฏิบัติจริงบน VRPortal</div>
+      <a href="https://uat.vrsteel.com/system/activity-link" target="_blank" class="btn btn-outline" style="font-size:.82rem;padding:6px 12px;text-decoration:none">🔗 เปิด Activity Link</a>
+    </div>
+    <div id="dash-practical-body"></div>
+  </div>
+</div>
+
+<!-- =============== MODALS =============== -->
+
+<!-- Modal: Result Detail -->
+<div class="modal-overlay" id="modal-result-detail" onclick="if(event.target===this)closeModal('modal-result-detail')" style="overflow-y:auto;align-items:flex-start;padding:20px 0">
+  <div class="modal" style="max-width:700px;width:95%;margin:auto;max-height:none">
+    <div class="modal-title" id="result-detail-title">📊 รายละเอียดผลการทดสอบ</div>
+    <div id="result-detail-body" style="max-height:70vh;overflow-y:auto;padding-right:4px"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal('modal-result-detail')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Edit Question -->
+<div class="modal-overlay" id="modal-edit-question" onclick="if(event.target===this)closeModal('modal-edit-question')" style="overflow-y:auto;align-items:flex-start;padding:20px 0">
+  <div class="modal" style="max-width:680px;width:95%;margin:auto;max-height:none">
+    <div class="modal-title">✏️ แก้ไขข้อคำถาม <span id="edit-q-id" style="font-size:.8rem;font-weight:400;color:var(--muted)"></span></div>
+    <div class="form-group">
+      <label>ข้อคำถาม</label>
+      <textarea id="edit-q-text" rows="3" style="resize:vertical"></textarea>
+    </div>
+    <div id="edit-q-options-wrap"></div>
+    <div class="form-group" style="margin-top:8px">
+      <label>คำอธิบายเพิ่มเติม (Explanation)</label>
+      <textarea id="edit-q-explanation" rows="2" style="resize:vertical"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-question')">ยกเลิก</button>
+      <button class="btn btn-outline" id="edit-q-reset-btn" style="color:var(--danger);border-color:var(--danger)" onclick="resetQuestion()">↩️ คืนค่าเดิม</button>
+      <button class="btn btn-success" onclick="saveEditedQuestion()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-generate">
+  <div class="modal">
+    <div class="modal-title">✨ สร้าง Quiz Set ใหม่ด้วย AI</div>
+    <div class="form-group">
+      <label>ชื่อชุดข้อสอบ</label>
+      <input type="text" id="gen-title" placeholder="เช่น PSE Onboarding Set 1">
+    </div>
+    <div class="form-group">
+      <label>หมวดหมู่</label>
+      <select id="gen-category">
+        <option value="pse_ose_roles">บทบาท PSE & OSE</option>
+        <option value="vrportal">VRPortal & ระบบ</option>
+        <option value="activity_link">Activity Link & Follow Up Plans</option>
+        <option value="order_link">Order Link & สถานะ</option>
+        <option value="mini_cdp">Mini CDP & การจัดสรรลูกค้า</option>
+        <option value="mixed">ผสมทุกหมวด</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>จำนวนข้อ</label>
+      <select id="gen-count">
+        <option value="5">5 ข้อ</option>
+        <option value="10" selected>10 ข้อ</option>
+        <option value="15">15 ข้อ</option>
+        <option value="20">20 ข้อ</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>เวลาจำกัด (นาที)</label>
+      <input type="number" id="gen-time" value="15" min="5" max="60">
+    </div>
+    <div class="form-group">
+      <label>เกณฑ์ผ่าน (%)</label>
+      <input type="number" id="gen-pass" value="70" min="50" max="100">
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeModal('modal-generate')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="generateQuizSet()">✨ สร้าง Quiz Set</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-title">⚙️ การตั้งค่าระบบ</div>
+    <div class="form-group">
+      <label>รหัสผ่าน Admin (ปัจจุบัน)</label>
+      <input type="password" id="set-old-pass" placeholder="รหัสผ่านเดิม">
+    </div>
+    <div class="form-group">
+      <label>รหัสผ่านใหม่</label>
+      <input type="password" id="set-new-pass" placeholder="รหัสผ่านใหม่">
+    </div>
+    <div class="sheets-config">
+      <div class="card-title" style="margin-bottom:12px">📊 เชื่อมต่อ Google Sheets</div>
+      <div class="alert alert-info">วางลิงก์ Google Apps Script Web App เพื่อ sync ผลลัพธ์ขึ้น Google Sheets อัตโนมัติ</div>
+      <div class="form-group">
+        <label>Google Apps Script URL</label>
+        <input type="url" id="set-gas-url" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <details style="margin-top:12px; font-size:.82rem; color:var(--muted)">
+        <summary style="cursor:pointer; font-weight:600; color:var(--primary)">วิธีตั้งค่า Google Apps Script</summary>
+        <ol style="margin-top:8px; padding-left:20px; line-height:1.8">
+          <li>เปิด Google Sheets "Sales Executive Quiz"</li>
+          <li>ไปที่ Extensions → Apps Script</li>
+          <li>วาง Code จาก <strong>gas-backend.gs</strong> ในโฟลเดอร์เดียวกัน</li>
+          <li>Deploy → New Deployment → Web App</li>
+          <li>Execute as: Me | Who has access: Anyone</li>
+          <li>Copy URL แล้ววางที่ช่องด้านบน</li>
+        </ol>
+      </details>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeModal('modal-settings')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveSettings()">บันทึกการตั้งค่า</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-review">
+  <div class="modal">
+    <div class="modal-title" id="review-title"></div>
+    <div id="review-revision-history"></div>
+    <div id="review-questions-list"></div>
+    <div class="form-group" style="margin-top:16px;">
+      <label>💬 คอมเมนต์ / ข้อคิดเห็น <span style="color:var(--danger);font-size:.8rem">(กรอกก่อนกด "ส่งกลับแก้ไข")</span></label>
+      <textarea id="review-note" rows="3" placeholder="เช่น: ข้อ 3 ถามซ้ำกับชุดอื่น, ข้อ 7 ยากเกินไป, ต้องการเพิ่มคำถามเกี่ยวกับ OSE..."></textarea>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="closeReviewModal()">ปิด</button>
+      <button class="btn btn-primary" id="btn-publish" onclick="closeReviewModal()" style="display:none">🌐 Publish</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== SUPABASE CONFIG ==========
+const SB_URL = 'https://pveccclpymhexizviasn.supabase.co/rest/v1';
+const SB_KEY = 'sb_publishable_uvHQImcfdCraaYJsmFynLg_JERgoAlY';
+const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+
+// Keys ที่เก็บใน localStorage เท่านั้น (ข้อมูล session / device เฉพาะเครื่อง)
+const LOCAL_ONLY = new Set(['adminLoggedIn', 'adminPass', 'autoCheckEnabled', 'autoCheckLastRun', 'bankVersion']);
+
+// In-memory cache — โหลดจาก Supabase ครั้งเดียวตอนเปิดแอป
+const _mem = {};
+
+// ========== DATA STORE ==========
+const DB = {
+  get(k, def = null) {
+    if (LOCAL_ONLY.has(k)) {
+      try { const v = localStorage.getItem('vrq_'+k); return v !== null ? JSON.parse(v) : def; } catch { return def; }
+    }
+    return _mem[k] !== undefined ? _mem[k] : def;
+  },
+  set(k, v) {
+    if (LOCAL_ONLY.has(k)) {
+      localStorage.setItem('vrq_'+k, JSON.stringify(v));
+      return;
+    }
+    _mem[k] = v;
+    // บันทึกลง Supabase แบบ fire-and-forget
+    fetch(SB_URL + '/app_data', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ key: k, value: v, updated_at: new Date().toISOString() })
+    }).catch(err => console.warn('Supabase write error:', k, err));
+  }
+};
+
+async function loadFromSupabase() {
+  try {
+    const res = await fetch(SB_URL + '/app_data?select=key,value', { headers: SB_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    rows.forEach(r => { _mem[r.key] = r.value; });
+  } catch (e) {
+    console.warn('Supabase load failed, ใช้ข้อมูลว่าง:', e);
+    document.getElementById('app-loading-error').style.display = '';
+    document.getElementById('app-loading-error').textContent = 'เชื่อมต่อฐานข้อมูลไม่ได้ (' + e.message + ') — แอปยังใช้งานได้แต่ข้อมูลจะไม่ถูกบันทึก';
+    await new Promise(r => setTimeout(r, 2500));
+  }
+  document.getElementById('app-loading').style.display = 'none';
+}
+
+// ========== QUIZ QUESTION BANK ==========
+// Generated from VRSteel Knowledge Base & PSE/OSE Introduction documents
+const QUESTION_BANK = {
+  pse_ose_roles: [
+    { id:'r1', text:'PSE ย่อมาจากอะไร?', options:['Potential Sales Executive','Primary Sales Executive','Professional Sales Executive','Partner Sales Executive'], answer:0, explanation:'PSE = Potential Sales Executive ทำหน้าที่ติดต่อลูกค้าเบื้องต้น' },
+    { id:'r2', text:'OSE ย่อมาจากอะไร?', options:['Order Sales Executive','Overall Sales Executive','Outbound Sales Executive','Operations Sales Executive'], answer:0, explanation:'OSE = Order Sales Executive ทำหน้าที่ปิดการขาย' },
+    { id:'r3', text:'หน้าที่หลักของ PSE คืออะไร?', options:['ปิดการขายและออกใบเสนอราคา','ติดต่อเริ่มพูดคุยกับลูกค้าและส่งต่อให้ OSE','ออกใบแจ้งหนี้และใบเสนอราคา','ดูแลระบบ ERP เท่านั้น'], answer:1, explanation:'PSE เริ่มติดต่อลูกค้า สอบถามข้อมูล และส่งต่อให้ OSE เพื่อปิดการขาย' },
+    { id:'r4', text:'Sales Executive มีหน้าที่เกี่ยวข้องกับเอกสารใดบ้าง?', options:['ออกใบเสนอราคา (SQ) และใบแจ้งหนี้ (Invoice)','ไม่เกี่ยวข้องกับ SQ และ Invoice','เฉพาะใบแจ้งหนี้ (Invoice)','เฉพาะใบเสนอราคา (SQ)'], answer:1, explanation:'Sales Executive ไม่เกี่ยวข้องกับการออก SQ หรือ Invoice โดยตรง' },
+    { id:'r5', text:'Team 1 ดูแลพื้นที่ใดบ้าง (เลือกคำตอบที่ถูกต้องที่สุด)?', options:['BKK-2 กรุงเทพใต้, BKK-3 กรุงเทพตะวันออก','BKK-1 กรุงธนเหนือ, BKK-1 กรุงธนใต้, BKK-2 กรุงเทพกลาง','ภาคตะวันออก-2, ภาคเหนือ-3, ภาคอีสาน-3','ภาคใต้-2, ภาคใต้-3, ภาคกลาง-3'], answer:1, explanation:'Team 1 ดูแล BKK-1 กรุงธนเหนือ/ใต้, BKK-2 กรุงเทพกลาง, ภาคใต้-1, ภาคกลาง-1/2, ภาคอีสาน-1/2, ภาคเหนือ-1' },
+    { id:'r6', text:'Team 2 ดูแลพื้นที่ใด?', options:['BKK-1 กรุงธนเหนือ, ภาคใต้-1, ภาคกลาง-1','BKK-2 กรุงเทพใต้, BKK-3 กรุงเทพตะวันออก, ภาคตะวันออก-2','BKK-2 กรุงเทพกลาง, ภาคอีสาน-1, ภาคเหนือ-1','ภาคกลาง-1, ภาคกลาง-2, ภาคอีสาน-1'], answer:1, explanation:'Team 2 ดูแล BKK-2 กรุงเทพใต้, BKK-3 กรุงเทพตะวันออก/เหนือ, ภาคตะวันออก-2, ภาคเหนือ-3, ภาคอีสาน-3, ภาคใต้-2/3, ภาคกลาง-3' },
+    { id:'r7', text:'Sales Area VR Center และ KA ใครเป็นผู้ดูแลลูกค้า?', options:['PSE_T1','PSE_T2','OSE','Sales Admin'], answer:3, explanation:'Sales Area VR Center และ KA ทาง Sales Admin จะเป็นผู้ดูแลลูกค้าในเขตพื้นที่นี้' },
+    { id:'r8', text:'OSE ได้รับ Follow Up Plans : Order มาจากใคร?', options:['Sales Admin','ลูกค้าสร้างเอง','PSE ทำการ Assign ให้','ระบบ Auto Assign'], answer:2, explanation:'PSE เป็นผู้ Assign FL Order ให้กับ OSE หลังได้รายการจากลูกค้า' },
+    { id:'r9', text:'แต่ละ Team ประกอบด้วยบุคลากรกี่ประเภท?', options:['1 ประเภท (PSE เท่านั้น)','2 ประเภท (PSE และ OSE)','3 ประเภท','4 ประเภท'], answer:1, explanation:'แต่ละ Team มี PSE และ OSE รวม 2 ประเภท เช่น Team 1 มี PSE_T1 และ OSE_T1' },
+    { id:'r10', text:'PSE ต้องสร้างอะไรเป็นขั้นตอนแรกในการติดตามลูกค้า?', options:['Follow Up Plans','Order Link','Activity Link (ATL)','ใบเสนอราคา'], answer:2, explanation:'PSE เริ่มจากสร้าง Activity Link (ATL) บน VRPortal ก่อนทุกครั้ง' },
+    { id:'r11', text:'ใครคือผู้ออกใบเสนอราคา (SQ) ในกระบวนการขาย?', options:['PSE','OSE','Sales Admin','Accounting Staff'], answer:2, explanation:'Sales Admin เป็นผู้ออกใบเสนอราคา (SQ) ผ่านโปรแกรม Bplus หลังได้รับข้อมูลราคาจาก OSE' },
+    { id:'r12', text:'จำนวนทีมของ Sales Executive ทั้งหมดมีกี่ทีม?', options:['1 ทีม','2 ทีม','3 ทีม','4 ทีม'], answer:1, explanation:'มีทั้งหมด 2 ทีม คือ Team 1 และ Team 2 โดยแต่ละทีมดูแลพื้นที่ลูกค้าที่ต่างกัน' },
+    { id:'r13', text:'OSE ต้องแนบเอกสารใดใน Activity Forms Set C เพื่อให้ Sales Admin ออก SQ?', options:['ใบ PO ของลูกค้า','ใบ Dynamic Price / DBD','ใบส่งสินค้า (SV)','ใบ Pay Link'], answer:1, explanation:'OSE ต้องแนบใบ Dynamic Price/DBD ใน Activity Forms Set C หัวข้อเอกสารอื่นๆ เพื่อให้ Sales Admin ออก SQ ผ่าน Bplus' },
+    { id:'r14', text:'Sale Manager มีบทบาทอะไรใน ATL Workflow?', options:['สร้าง Activity Link ให้ SE','Assign Sale Admin ใน ATL เพื่อสร้างใบเสนอราคา','ออก SQ ให้ลูกค้า','Verify PO ในระบบ'], answer:1, explanation:'Sale Manager จะ tag Sale Admin ในกลุ่มไลน์ และ Assign Sale Admin ที่ต้องสร้างใบเสนอราคาใน ATL โดยดูจากเลข Activity Link' },
+    { id:'r15', text:'OSE ตรวจสอบราคาเหล็กก่อนแจ้งลูกค้าผ่านโปรแกรมใด?', options:['Easy Stock','Dynamic Price','Bplus','EasyARClass'], answer:1, explanation:'OSE ตรวจสอบราคาเหล็กผ่านโปรแกรม Dynamic Price แล้วนำมาแนบใน Activity Forms Set C' },
+    { id:'r16', text:'Activity Forms Set C เป็นของใคร และใช้บันทึกข้อมูลใด?', options:['PSE ใช้บันทึกข้อมูลโปรไฟล์ลูกค้า','PSE ใช้บันทึกข้อมูลการเข้าพบ','OSE ใช้บันทึกข้อมูลการได้รายการ','Sales Admin ใช้บันทึกข้อมูล SQ'], answer:2, explanation:'Activity Forms Set C = ข้อมูลการได้รายการ ใช้โดย OSE ในการบันทึกข้อมูลการปิดการขาย' },
+    { id:'r17', text:'Partner ใน VRSteel หมายถึงใคร?', options:['PSE ที่ผ่านการทดสอบแล้ว','Sales Admin ระดับสูง','ลูกค้าหรือตัวแทนที่ได้รับสิทธิ์ใช้งาน VRPortal เพื่อสั่งซื้อโดยตรง','Sale Manager'], answer:2, explanation:'Partner คือลูกค้าหรือตัวแทนจำหน่ายที่ได้รับสิทธิ์ใช้งาน VRPortal เพื่อดูแลและสั่งซื้อสินค้าได้ด้วยตนเอง' },
+    { id:'r18', text:'รหัสทีม "PSE_T1" หมายถึงอะไร?', options:['OSE ประจำ Team 1','PSE ประจำ Team 1','Sale Supervisor Team 1','Sales Admin Team 1'], answer:1, explanation:'PSE_T1 = PSE (Potential Sales Executive) ที่อยู่ใน Team 1' },
+    { id:'r19', text:'ระบบสร้าง Follow Up Plans : Order ให้อัตโนมัติเมื่อใด?', options:['เมื่อ SE สร้าง Activity Link ครั้งแรก','เมื่อ PSE ติ๊กยืนยันว่าได้รายการใน Activity Forms Set B','เมื่อ Sale Admin แนบ SQ ใน ODL','เมื่อลูกค้ายืนยัน PO'], answer:1, explanation:'เมื่อ PSE ติ๊กยืนยันว่าได้รายการใน Activity Forms Set B ระบบจะสร้าง FL : Order ให้โดยอัตโนมัติเพื่อให้ PSE Assign ให้ OSE' },
+    { id:'r20', text:'รหัสทีม "OSE_T1" หมายถึงอะไร?', options:['PSE ประจำ Team 1','Sale Supervisor Team 1','OSE ประจำ Team 1','OSE ประจำ VR Center'], answer:2, explanation:'OSE_T1 = OSE (Order Sales Executive) ที่อยู่ใน Team 1' },
+    { id:'r21', text:'ข้อมูลใดที่ SE ต้องใช้สร้าง Member ใหม่สำหรับลูกค้าที่ยังไม่มีในระบบ?', options:['รหัส ARCode และอีเมล','เบอร์โทรศัพท์และชื่อ-นามสกุล','เลขบัตรประชาชนและที่อยู่','ชื่อบริษัทและเลขทะเบียน'], answer:1, explanation:'SE ใช้เบอร์โทรศัพท์และชื่อ-นามสกุลของลูกค้าในการสร้าง Member ใหม่ในระบบ' },
+    { id:'r22', text:'Sale Supervisor มีบทบาทใดใน ODL Workflow?', options:['สร้าง ODL ให้ลูกค้า','ออกใบเสนอราคาแทน Sale Admin','เป็นหนึ่งในผู้ใช้งานที่ต้อง Assign ใน ODL อย่างน้อย 3 คน','ตรวจสอบราคาเหล็กใน Dynamic Price'], answer:2, explanation:'ใน ODL Workflow ต้อง Assign User ขั้นต่ำ 3 คน ได้แก่ Sales Executive ประจำเขต, Sale Supervisor และ Sale Manager' },
+    { id:'r23', text:'โปรแกรม EasyARClass ใช้ทำอะไรในงานของ Sales Executive?', options:['ออกใบเสนอราคา','สร้าง ATL ใหม่','ตรวจสอบข้อมูลบัญชีลูกหนี้ (ARCode) ของลูกค้า','ติดตามสถานะการส่งสินค้า'], answer:2, explanation:'EasyARClass ใช้ตรวจสอบข้อมูล ARCode ของลูกค้า เป็นหนึ่งใน 3 ช่องทางร่วมกับ Bplus และ Dynamic Price' },
+    { id:'r24', text:'Pay Link ใน VRPortal คืออะไร?', options:['ลิงก์เชื่อมต่อ VRPortal กับ Bplus','ลิงก์ชำระเงินที่ Sale Admin/Accounting สร้างให้ลูกค้าหลัง Verify PO แล้ว','ลิงก์สำหรับสร้าง ATL','ลิงก์ส่งข้อมูลลูกค้าให้ OSE'], answer:1, explanation:'Pay Link คือลิงก์ชำระเงินที่ Sale Admin หรือ Accounting Staff สร้างให้ลูกค้าหลังจาก PO ได้รับการ Verify แล้ว' },
+    { id:'r25', text:'หลังจาก OSE ตรวจสอบราคาเหล็กผ่าน Dynamic Price แล้ว ต้องทำอะไรต่อ?', options:['Assign Sale Admin ใน ATL ทันที','นำใบ Dynamic Price/DBD แนบใน Activity Forms Set C','สร้าง ODL ให้ลูกค้า','รายงาน Sale Manager ผ่านไลน์'], answer:1, explanation:'หลังตรวจสอบราคาผ่าน Dynamic Price แล้ว OSE นำใบ DP/DBD มาแนบใน Activity Forms Set C เพื่อให้ Sale Admin ออก SQ' },
+    { id:'r26', text:'กระบวนการ "2 Way Verify PO" ต้องการการยืนยันจากใคร?', options:['Sales Executive ฝ่ายเดียว','Sales Executive/Partner แนบ PO และ Admin Verify (2 ฝ่าย)','Sale Manager และ Accounting Staff','Admin และ Sale Manager'], answer:1, explanation:'2 Way Verify PO คือกระบวนการ 2 ฝ่าย: SE/Partner แนบ PO และ Admin ทำการ Verify ในระบบ' },
+    { id:'r27', text:'ODL จะเชื่อมโยงกับ ATL ได้อย่างไร?', options:['SE สร้างการเชื่อมโยงเอง','Sale Admin สร้าง ODL และเชื่อมกับ ATL นั้น','ระบบเชื่อมอัตโนมัติเสมอ','Sale Manager กำหนดการเชื่อมโยง'], answer:1, explanation:'Sale Admin เป็นผู้สร้าง ODL และเชื่อมโยงกับ ATL ที่เกี่ยวข้อง (ยกเว้นกรณีลูกค้ากดสนใจสั่งซื้อซึ่งระบบสร้าง ODL อัตโนมัติ)' },
+    { id:'r28', text:'หลังจาก Sale Admin แนบ SQ ใน ODL แล้ว Sales Executive ต้องทำอะไรต่อ?', options:['Admin Verify PO ทันที','SE ติดตามลูกค้าและอัปเดต FL Order รอลูกค้าออก PO','ลูกค้าชำระเงินทันที','Sale Manager อนุมัติ SQ'], answer:1, explanation:'หลังมี SQ แล้ว SE ต้องติดตามลูกค้าและอัปเดต FL Order รอให้ลูกค้าพิจารณาและออก PO มายืนยันการสั่งซื้อ' },
+    { id:'r29', text:'เมื่อ OSE ได้รับ FL : Order จาก PSE แล้ว OSE มีหน้าที่อะไรในขั้นตอนถัดไป?', options:['ออกใบเสนอราคา (SQ) ให้ลูกค้า','ตรวจสอบราคาเหล็กและบันทึกข้อมูลการได้รายการใน Activity Forms Set C','สร้าง ATL ใหม่','Assign Sale Admin ใน ATL'], answer:1, explanation:'หลังรับ FL Order จาก PSE แล้ว OSE ตรวจสอบราคาผ่าน Dynamic Price และบันทึกข้อมูลการได้รายการใน Activity Forms Set C' },
+    { id:'r30', text:'ผู้ใดมีหน้าที่ออกใบส่งสินค้า (SV) ให้ลูกค้า?', options:['PSE','OSE','Sales Admin','Sale Manager'], answer:2, explanation:'Sales Admin เป็นผู้ออกใบส่งสินค้า (SV) ผ่านโปรแกรม Bplus หลังจากสินค้าถูกจัดส่ง' },
+  ],
+  vrportal: [
+    { id:'v1', text:'URL ของระบบ VRSteel คือข้อใด?', options:['https://vrsteel.com','https://uat.vrsteel.com','https://portal.vrsteel.com','https://app.vrsteel.com'], answer:1, explanation:'URL คือ https://uat.vrsteel.com สำหรับ UAT environment' },
+    { id:'v2', text:'หลังเข้าสู่ระบบสำเร็จ Sales Executive ต้องกดปุ่มใดเพื่อไปยังหน้าทำงานหลัก?', options:['Dashboard','Order Link','VRPortal','Activity Link'], answer:2, explanation:'ต้องกดปุ่ม VRPortal เพื่อไปยังหน้าหลักสำหรับการทำงาน' },
+    { id:'v3', text:'VRPortal ประกอบด้วยกี่ส่วนหลัก?', options:['3 ส่วน','4 ส่วน','5 ส่วน','6 ส่วน'], answer:2, explanation:'VRPortal มี 5 ส่วนหลัก: ข้อมูลโปรไฟล์, Order Link, Activity Link, Follow Up Plans, บัญชีและการเงิน' },
+    { id:'v4', text:'ส่วน "บัญชีและการเงิน" ใน VRPortal แสดงสำหรับ Role ใด?', options:['Sales Executive เท่านั้น','Staff เท่านั้น','Partner เท่านั้น','ทุก Role'], answer:2, explanation:'ส่วนบัญชีและการเงินจะแสดงเฉพาะ Role ที่เป็น Partner เท่านั้น' },
+    { id:'v5', text:'บัญชีผู้ใช้ (Username) ของ Sales Executive ใช้อะไร?', options:['Email','เลขประจำตัวพนักงาน','เบอร์โทรศัพท์','ชื่อ-นามสกุล'], answer:2, explanation:'บัญชีผู้ใช้ = เบอร์โทรศัพท์' },
+    { id:'v6', text:'ในกระบวนการ 2 Way Verify PO ของ SE ต้องแนบเอกสารใดลงใน Order Link?', options:['ใบแจ้งหนี้ (INV)','ใบส่งสินค้า (SV)','ใบยืนยันการสั่งซื้อ (PO)','ใบเสนอราคา (SQ)'], answer:2, explanation:'SE/Partner ต้องแนบ PO (ใบยืนยันการสั่งซื้อ) ลงใน Order Link เพื่อให้ Admin ทำการ Verify' },
+    { id:'v7', text:'Sales Executive ใช้โปรแกรม Easy Stock เพื่ออะไร?', options:['ตรวจสอบราคาเหล็กแบบ Real-time','ตรวจสอบสต็อคสินค้าในคลัง','ออกใบเสนอราคา','จัดสรรลูกค้า'], answer:1, explanation:'SE ใช้ Easy Stock ตรวจสอบสต็อคสินค้าในคลังก่อนทำใบเสนอราคาให้ลูกค้า' },
+    { id:'v8', text:'ใน VRPortal หน้าหลักของ SE, "Pay Link รอชำระ" หมายถึงอะไร?', options:['Order Link ที่ลูกค้าชำระเงินครบแล้ว','Order Link ที่มีรายการ Pay Link อยู่ในสถานะรอชำระเงิน','Order Link ที่ถูกยกเลิก','Order Link ที่รอตรวจสอบเอกสาร'], answer:1, explanation:'Pay Link รอชำระ = จำนวน Order Link ที่มีรายการ Pay Link อยู่ในสถานะรอชำระเงิน' },
+    { id:'v9', text:'ใน VRPortal หน้าหลักของ SE, "Pay Link รอตรวจสอบ" หมายถึงอะไร?', options:['Order Link ที่ลูกค้าชำระแล้ว','Order Link ที่มีรายการ Pay Link รอตรวจสอบการแก้ไข','Order Link ที่ถูกปฏิเสธ','Order Link ที่รอ Admin อนุมัติ'], answer:1, explanation:'Pay Link รอตรวจสอบ = จำนวน Order Link ที่มีรายการ Pay Link อยู่ในสถานะรอตรวจสอบการแก้ไข' },
+    { id:'v10', text:'ใน VRPortal เมนู "Follow Up Plans" ใช้สำหรับอะไร?', options:['ออกใบเสนอราคา','ติดตามและบันทึกกิจกรรมการขายกับลูกค้าแต่ละราย','ดูสต็อคสินค้า','ส่งข้อความหาลูกค้า'], answer:1, explanation:'Follow Up Plans ใช้สำหรับติดตามและบันทึกกิจกรรมการขาย ทั้ง FL Potential-A, B และ FL Order' },
+    { id:'v11', text:'ส่วน Order Link ใน VRPortal แสดงสถิติสถานะกี่สถานะ?', options:['2 สถานะ','3 สถานะ','4 สถานะ','5 สถานะ'], answer:2, explanation:'ส่วน Order Link แสดง 4 สถานะ ได้แก่ รอ SQ, รอ PO, รออนุมัติ, กำลังดำเนินการ' },
+    { id:'v12', text:'SE/Partner สามารถสร้าง Activity Link ใหม่ได้จากส่วนใดใน VRPortal?', options:['ส่วน Order Link','ส่วน Activity Link','ส่วน Follow Up Plans','ส่วนบัญชีและการเงิน'], answer:1, explanation:'SE/Partner สร้าง Activity Link ใหม่ได้จากส่วน Activity Link ใน VRPortal' },
+    { id:'v13', text:'โปรแกรม Dynamic Price ใช้ทำอะไรในงานของ SE?', options:['ตรวจสอบสต็อคสินค้าในคลัง','ตรวจสอบราคาเหล็ก Real-time เพื่อทำเอกสารอ้างอิงราคา','จัดสรรลูกค้า (ARCode) ให้ PSE','สร้าง Order Link ให้ลูกค้า'], answer:1, explanation:'Dynamic Price ใช้สำหรับตรวจสอบราคาเหล็ก Real-time เพื่อทำเอกสารอ้างอิงราคา ก่อนที่ Sales Admin จะออก SQ' },
+    { id:'v14', text:'ส่วน "ข้อมูลโปรไฟล์" ใน VRPortal ใช้สำหรับอะไร?', options:['ดูสต็อคสินค้า','แสดงข้อมูลส่วนตัวและข้อมูลบัญชีของผู้ใช้งาน','สร้าง Activity Link','ดูประวัติการสั่งซื้อ'], answer:1, explanation:'ส่วนข้อมูลโปรไฟล์ใน VRPortal แสดงข้อมูลส่วนตัวและบัญชีของผู้ใช้งาน เช่น ชื่อ เบอร์โทร และข้อมูลที่เกี่ยวข้อง' },
+    { id:'v15', text:'"Activity Link ทั้งหมด" ในหน้าหลัก VRPortal ของ SE หมายถึงอะไร?', options:['จำนวน ATL ที่ยังไม่ได้สร้าง','จำนวน ATL ทั้งหมดที่ SE รับผิดชอบอยู่','จำนวน ATL ที่ถูกยกเลิก','จำนวน ATL ที่ Assign ให้ OSE แล้ว'], answer:1, explanation:'Activity Link ทั้งหมด = จำนวน ATL ทั้งหมดที่ SE นั้นรับผิดชอบดูแลอยู่ในระบบ' },
+    { id:'v16', text:'SE สามารถดูประวัติการดำเนินงานของ ODL แต่ละรายการได้จากที่ใด?', options:['Activity Link','History Logs ใน Order Link','Mini CDP','Follow Up Plans'], answer:1, explanation:'History Logs ใน Order Link แสดงประวัติทุก action ที่เกิดขึ้นใน ODL รวมถึงวันเวลาและผู้กระทำ' },
+    { id:'v17', text:'Easy Stock ต่างจาก Dynamic Price อย่างไร?', options:['Easy Stock ตรวจสอบราคา, Dynamic Price ตรวจสอบสต็อค','Easy Stock ตรวจสอบสต็อคสินค้าในคลัง, Dynamic Price ตรวจสอบราคาเหล็ก Real-time','ทั้งคู่ใช้ตรวจสอบราคาเหมือนกัน','Easy Stock ออกใบเสนอราคา, Dynamic Price ดูสต็อค'], answer:1, explanation:'Easy Stock ใช้ตรวจสอบสต็อคสินค้าในคลัง ส่วน Dynamic Price ใช้ตรวจสอบราคาเหล็ก Real-time เพื่อทำเอกสารอ้างอิงราคา' },
+    { id:'v18', text:'Follow Up Plans ใน VRPortal มีกี่ประเภทหลัก?', options:['1 ประเภท','2 ประเภท','3 ประเภท (FL Potential-A, FL Potential-B, FL Order)','4 ประเภท'], answer:2, explanation:'Follow Up Plans มี 3 ประเภท ได้แก่ FL Potential-A (ข้อมูลโปรไฟล์), FL Potential-B (ข้อมูลการเข้าพบ) และ FL Order (ติดตามการสั่งซื้อ)' },
+    { id:'v19', text:'หลังจาก SE กรอกเลข Activity Link ใน Dynamic Price และได้เอกสารราคาแล้ว ต้องส่งไปที่ใด?', options:['อัปโหลดใน VRPortal ทันที','ส่งในกลุ่มไลน์พร้อม Tag Sale Manager','ส่งอีเมลให้ Sale Admin','Upload ใน ODL โดยตรง'], answer:1, explanation:'SE ต้องส่งเอกสาร DP ในกลุ่มไลน์พร้อม Tag Sale Manager เพื่อให้ Sale Manager มอบหมายงานต่อให้ Sale Admin' },
+    { id:'v20', text:'ใน VRPortal หน้าหลัก SE ข้อมูล "Order Link รอ SQ" คืออะไร?', options:['จำนวน Order ที่ชำระแล้ว','จำนวน ODL ที่ยังไม่มีใบเสนอราคาแนบอยู่','จำนวน Order ที่ถูกยกเลิก','จำนวน Order ที่รอลูกค้าแนบ PO'], answer:1, explanation:'Order Link รอ SQ = จำนวน ODL ที่ยังไม่มีการแนบใบเสนอราคา (SQ) ลงในระบบ' },
+    { id:'v21', text:'ส่วน Order Link ของ SE ใน VRPortal แสดงข้อมูลอะไรได้บ้าง?', options:['เฉพาะ ODL ที่ SE สร้างเอง','สถานะและรายละเอียด ODL ทุกรายการที่ SE รับผิดชอบ รวมถึง Timeline และ History','เฉพาะ ODL ที่ชำระเงินแล้ว','เฉพาะ ODL ที่กำลังดำเนินการ'], answer:1, explanation:'ส่วน Order Link แสดงข้อมูล ODL ทุกรายการที่ SE รับผิดชอบ รวมถึง Timeline สถานะ และ History Logs' },
+    { id:'v22', text:'ใน VRPortal ผู้ใช้ Role "Partner" ต่างจาก "Sales Executive" อย่างไรในส่วนที่แสดง?', options:['Partner เห็น Order Link ได้มากกว่า','Partner เห็นส่วน "บัญชีและการเงิน" ที่ SE ปกติไม่เห็น','SE เห็น Mini CDP แต่ Partner ไม่เห็น','ไม่มีความต่าง'], answer:1, explanation:'ส่วน "บัญชีและการเงิน" ใน VRPortal แสดงเฉพาะ Role Partner เท่านั้น ไม่แสดงให้ Sales Executive เห็น' },
+    { id:'v23', text:'ใน VRPortal SE ต้องกดปุ่มใดหลัง Login สำเร็จ เพื่อเข้าสู่หน้าทำงานหลัก?', options:['Activity Link','Order Management','VRPortal','Sales Dashboard'], answer:2, explanation:'หลัง Login เสร็จ SE ต้องกดปุ่ม VRPortal เพื่อเข้าสู่หน้าทำงานหลักของระบบ' },
+  ],
+  activity_link: [
+    { id:'a1', text:'ATL ย่อมาจากอะไร?', options:['Activity Token Link','Automatic Task Log','Activity Link','Account Transaction Link'], answer:2, explanation:'ATL = Activity Link ระบบจัดการความสัมพันธ์กับลูกค้า' },
+    { id:'a2', text:'PSE สร้าง Activity Link บนแพลตฟอร์มส่วนใด?', options:['VRPortal','VRSystem','VRMobile','Bplus'], answer:0, explanation:'PSE สร้าง Activity Link (ATL) บน VRSteel Platform ส่วนของ VRPortal' },
+    { id:'a3', text:'Follow Up Plans ประเภทใดใช้สำหรับรวบรวม "ข้อมูลโปรไฟล์" ลูกค้า?', options:['FL : Order','FL : Potential - B (ข้อมูลโครงการ)','FL : Potential - A (ข้อมูลลูกค้า)','FL : Customer'], answer:2, explanation:'FL : Potential - A ใช้รวบรวมข้อมูลโปรไฟล์ลูกค้า (Activity Forms Set A)' },
+    { id:'a4', text:'Activity Forms Set B มีชื่อเรียกว่าอะไร?', options:['ข้อมูลโปรไฟล์','ข้อมูลการได้รายการ','ข้อมูลการเข้าพบ','ข้อมูลการชำระเงิน'], answer:2, explanation:'Activity Forms Set B = ข้อมูลการเข้าพบ ใช้บันทึกข้อมูลการเข้าพบลูกค้า' },
+    { id:'a5', text:'เมื่อ PSE ติ๊กยืนยันว่าได้รายการในแบบฟอร์ม Set B แล้ว ระบบจะทำอะไรอัตโนมัติ?', options:['สร้าง Order Link ใหม่','ส่ง Email แจ้ง OSE','สร้าง Follow Up Plans : Order อัตโนมัติ','สร้างใบเสนอราคา (SQ)'], answer:2, explanation:'ระบบจะสร้าง FL : Order อัตโนมัติ เพื่อให้ PSE Assign ให้ OSE ต่อไป' },
+    { id:'a6', text:'Activity Forms Set C ของ OSE มีชื่อว่าอะไร?', options:['ข้อมูลโปรไฟล์','ข้อมูลการเข้าพบ','ข้อมูลการได้รายการ','ข้อมูลการส่งสินค้า'], answer:2, explanation:'Activity Forms Set C = ข้อมูลการได้รายการ ใช้โดย OSE ในการบันทึกข้อมูลการปิดการขาย' },
+    { id:'a7', text:'OSE ใช้โปรแกรมใดในการตรวจสอบราคาเหล็กก่อนแจ้งลูกค้า?', options:['Easy Invoice','Dynamic Price','Bplus','Easy Stock'], answer:1, explanation:'OSE ตรวจสอบราคาเหล็กผ่านโปรแกรม Dynamic Price แล้วนำมาแนบใน Activity Forms Set C' },
+    { id:'a8', text:'ใน Follow Up Plans OSE จะต้องแนบเอกสารใดใน Activity Forms Set C หัวข้อเอกสารอื่นๆ?', options:['ใบแจ้งหนี้','ใบ Dynamic Price/DBD','ใบส่งสินค้า (SV)','ใบรับสินค้า'], answer:1, explanation:'OSE ต้องแนบใบ Dynamic Price/DBD เพื่อให้ Sales Admin ออก SQ ผ่านโปรแกรม Bplus' },
+    { id:'a9', text:'FL : Potential - B ใช้เพื่อรวบรวมข้อมูลประเภทใด?', options:['ข้อมูลโปรไฟล์ลูกค้า','ข้อมูลโครงการ','ข้อมูลการชำระเงิน','ข้อมูลการส่งสินค้า'], answer:1, explanation:'FL : Potential - B ใช้รวบรวมข้อมูลโครงการ (Activity Forms Set B - ข้อมูลการเข้าพบ)' },
+    { id:'a10', text:'Activity Forms Set A มีชื่อเรียกว่าอะไร?', options:['ข้อมูลการเข้าพบ','ข้อมูลการได้รายการ','ข้อมูลโปรไฟล์','ข้อมูลโครงการ'], answer:2, explanation:'Activity Forms Set A = ข้อมูลโปรไฟล์ ใช้บันทึกข้อมูลพื้นฐานของลูกค้า' },
+    { id:'a11', text:'หลังจาก PSE ได้รายการสั่งซื้อแล้ว ต้องส่งต่องานให้ใคร?', options:['Sales Admin','OSE (Order Sales Executive)','Accounting Staff','Delivery Staff'], answer:1, explanation:'PSE Assign FL : Order ให้ OSE เพื่อดำเนินการปิดการขายต่อ' },
+    { id:'a12', text:'"รอยืนยันผล" ใน Follow Up Plans หมายความว่าอะไร?', options:['FL ที่ยังไม่ได้รับ Assign','FL ที่ Sales Executive ยังไม่ได้กรอก Feedback Note','FL ที่ถูกยกเลิก','FL ที่รอ Admin อนุมัติ'], answer:1, explanation:'รอยืนยันผล = Follow Up Plans ที่ Sales Executive/Partner ยังไม่ได้กรอก Feedback Note' },
+    { id:'a13', text:'Bplus เป็นโปรแกรมที่ Sales Admin ใช้ทำอะไร?', options:['ตรวจสอบราคาเหล็ก','ออกใบเสนอราคา (SQ)','สร้าง Activity Link','ตรวจสอบสต็อคสินค้า'], answer:1, explanation:'Sales Admin ใช้ Bplus ออกใบเสนอราคา (SQ) หลังจากได้รับใบ Dynamic Price จาก OSE' },
+    { id:'a14', text:'PSE จะสร้าง Follow Up Plans กี่ประเภทในขั้นตอนหลักก่อนส่งให้ OSE?', options:['1 ประเภท (FL Order)','2 ประเภท (FL Potential-A และ FL Potential-B)','3 ประเภท','4 ประเภท'], answer:1, explanation:'PSE สร้าง FL Potential-A (ข้อมูลลูกค้า) และ FL Potential-B (ข้อมูลโครงการ) ก่อนส่ง FL Order ให้ OSE' },
+    { id:'a15', text:'ข้อมูลใดที่ PSE ต้องการได้จากลูกค้าผ่าน Activity Forms Set A?', options:['รายการสินค้าที่ต้องการสั่งซื้อ','ข้อมูลโปรไฟล์และข้อมูลพื้นฐานของลูกค้า','ยอดเงินที่ต้องชำระ','กำหนดส่งสินค้า'], answer:1, explanation:'Set A เก็บข้อมูลโปรไฟล์ลูกค้า เพื่อให้ PSE รู้จักลูกค้าก่อนเข้าไปขาย' },
+    { id:'a16', text:'เมื่อลูกค้าโทรติดต่อ Sales Executive เพื่อสั่งซื้อ Sales Executive ต้องตรวจสอบข้อมูลลูกค้าจากกี่ช่องทาง และช่องทางใดบ้าง?', options:['1 ช่องทาง — Bplus เท่านั้น','2 ช่องทาง — เว็บไซต์ VRSteel และ Bplus/ERP','3 ช่องทาง — Bplus, Dynamic Price, EasyARClass','2 ช่องทาง — Dynamic Price และ Easy Stock'], answer:1, explanation:'เมื่อลูกค้าโทรติดต่อ SE ต้องตรวจสอบ 2 ส่วน คือ ข้อมูลสมาชิกบนเว็บไซต์ VRSteel และข้อมูลบัญชีลูกหนี้ (AR Code) ในระบบ ERP' },
+    { id:'a17', text:'สามารถตรวจสอบข้อมูลบัญชีลูกหนี้ (AR Code) ของลูกค้าได้จากโปรแกรมใดบ้าง?', options:['Bplus, Dynamic Price, EasyARClass','Easy Stock, Dynamic Price, VRPortal','Bplus, Easy Stock, VRPortal','Dynamic Price, EasyARClass, VRPortal'], answer:0, explanation:'สามารถตรวจสอบข้อมูล AR Code ได้จาก 3 ช่องทาง ได้แก่ Bplus, Dynamic Price และ EasyARClass' },
+    { id:'a18', text:'ใน Case "ลูกค้าติดต่อมาโดยตรง" ลูกค้าควรมีแนวโน้มอะไร ก่อนที่ Sales Executive จะทำการสร้าง Activity Link?', options:['ลูกค้ายืนยันสั่งซื้อสินค้าแล้ว','ลูกค้ามีแนวโน้มต้องการใบเสนอราคา','ลูกค้ากดสนใจสั่งซื้อผ่านระบบ','ลูกค้าชำระเงินเรียบร้อยแล้ว'], answer:1, explanation:'Sales Executive ต้องสอบถามลูกค้าจนมีแนวโน้มที่ลูกค้าต้องการใบเสนอราคา ก่อนที่จะสร้าง ATL เพื่อติดตามลูกค้า' },
+    { id:'a19', text:'หลังจาก Sales Executive ได้รับข้อมูลจากลูกค้าและสร้าง ATL แล้ว ขั้นตอนถัดไปคืออะไร?', options:['ส่งเอกสาร DP ไปยังกลุ่มไลน์ทันที','กรอก ATL Forms และสร้าง FL Potential','สร้าง ODL และ Assign Sales Admin','ตรวจสอบ Easy Stock ก่อน'], answer:1, explanation:'หลังสร้าง ATL แล้ว SE ต้องกรอก ATL Forms และสร้าง FL Potential เพื่อวางแผนติดตามลูกค้าตามแผนงาน' },
+    { id:'a20', text:'ใน Case "Sales Executive วางแผนการทำงาน" ขั้นตอนแรกที่ SE ต้องทำคืออะไร?', options:['รอให้ลูกค้าติดต่อเข้ามาก่อน','SE วางแผนการทำงานและกำหนดกลุ่มลูกค้าที่ต้องการเข้าหา','สร้าง ODL ให้ลูกค้าก่อน','แนบ DP ลงใน ATL ทันที'], answer:1, explanation:'ใน Case วางแผนการทำงาน SE จะเป็นฝ่ายริเริ่มโดยการวางแผนและกำหนดกลุ่มลูกค้าที่ต้องการติดตาม แล้วจึงสร้าง ATL' },
+    { id:'a21', text:'ใน Case "ลูกค้ากดสนใจสั่งซื้อ" ระบบจะทำอะไรโดยอัตโนมัติเมื่อลูกค้ากดปุ่ม "สนใจสั่งซื้อ"?', options:['ระบบสร้าง ATL ให้อัตโนมัติ','ระบบสร้าง ODL ให้อัตโนมัติ','ระบบส่ง SMS แจ้ง Sales Executive','ระบบสร้าง FL Order ให้อัตโนมัติ'], answer:1, explanation:'เมื่อลูกค้ากดปุ่มสนใจสั่งซื้อ ระบบจะสร้าง ODL (Order Link) ให้โดยอัตโนมัติ' },
+    { id:'a22', text:'ใน Case "ลูกค้ากดสนใจสั่งซื้อ" หลังจาก ODL ถูกสร้างอัตโนมัติแล้ว Sales Executive ต้องทำขั้นตอนใดก่อน?', options:['สร้าง ATL ใหม่เพื่อเชื่อมกับ ODL','รอ Sale Admin สร้างใบเสนอราคา','ตรวจสอบ Easy Stock และกดราคาใน Dynamic Price','Assign Sale Admin ใน ATL ทันที'], answer:2, explanation:'เมื่อมี ODL จากลูกค้ากดสนใจสั่งซื้อ SE ยังต้องตรวจสอบสต็อคผ่าน Easy Stock และกดราคาใน Dynamic Price ก่อนดำเนินการต่อ' },
+    { id:'a23', text:'ใน Case "ลูกค้าติดต่อผ่าน Official Channel" ใครเป็นผู้รับเรื่องจากลูกค้าในขั้นแรก?', options:['Sales Executive ประจำเขต','Sale Manager','ทีม Official Channel / ผู้ดูแลช่องทางทางการ','Sale Admin'], answer:2, explanation:'กรณีลูกค้าติดต่อผ่าน Official Channel เช่น Line Official ทีมที่ดูแลช่องทางนั้นจะรับเรื่องก่อน แล้วจึงโอนข้อมูลให้ SE ดำเนินการต่อ' },
+    { id:'a24', text:'หลังจาก Sales Executive ตรวจสอบข้อมูลรายการกับเอกสาร DP แล้ว ขั้นตอนถัดไปในการส่งเอกสารอ้างอิงราคาคืออะไร?', options:['ส่งตรงให้ Sale Admin สร้างใบเสนอราคา','ส่งเอกสารแนบอ้างอิงราคาในกลุ่มไลน์และ tag Sale Manager','อัปโหลดเอกสารใน ATL โดยตรง','รอ Sale Manager อนุมัติก่อน จึงค่อยส่งเอกสาร'], answer:1, explanation:'SE ต้องส่งเอกสารแนบอ้างอิงราคา (DP) ในกลุ่มไลน์และ tag Sale Manager เพื่อให้ Sale Manager รับทราบและ Assign Sale Admin ต่อไป' },
+    { id:'a25', text:'ข้อมูลใดที่ Sales Executive ต้องกรอกใน Dynamic Price เพื่อทำเอกสารอ้างอิงราคา?', options:['เลข Member ID ของลูกค้า','เลข Activity Link ของลูกค้า','เลข Order Link ของลูกค้า','รหัส AR Code ของลูกค้า'], answer:1, explanation:'ในโปรแกรม Dynamic Price SE ต้องกรอกเลข Activity Link ของลูกค้าที่ต้องการทำใบเสนอราคา' },
+    { id:'a26', text:'ขั้นตอนใดเกิดขึ้นก่อน ระหว่าง "กรอก ATL Forms" กับ "สร้าง FL Potential"?', options:['สร้าง FL Potential ก่อน แล้วค่อยกรอก ATL Forms','กรอก ATL Forms ก่อน แล้วค่อยสร้าง FL Potential','ทำพร้อมกันได้ ไม่มีลำดับ','ขึ้นอยู่กับดุลยพินิจของ SE แต่ละคน'], answer:0, explanation:'ใน Workflow SE ต้องสร้าง FL Potential ก่อน จากนั้นจึงอัปเดต ATL Forms และอัปเดต FL Potential ตามแผนงาน' },
+    { id:'a27', text:'เมื่อลูกค้าโทรมา และ Sales Executive ค้นหาชื่อลูกค้าในระบบไม่พบ SE ต้องทำอะไร?', options:['ปฏิเสธการให้บริการ เนื่องจากลูกค้าไม่ใช่สมาชิก','สร้าง Member ใหม่ให้ลูกค้าก่อน แล้วจึงสร้าง ATL','สร้าง ATL ได้เลยโดยไม่ต้องมี Member','รายงาน Sale Manager ก่อนดำเนินการ'], answer:1, explanation:'หากลูกค้ายังไม่มีในระบบ SE ต้องทำการสร้าง Member ใหม่ก่อน โดยใช้เบอร์โทร ชื่อ-นามสกุลของลูกค้า จากนั้นจึงสร้าง ATL ติดตาม' },
+    { id:'a28', text:'ใน Workflow "ลูกค้าติดต่อมาโดยตรง" ลูกค้าติดต่อ SE ผ่านช่องทางใด?', options:['แชทผ่านระบบ VRPortal','โทร/ไลน์ไปยังโทรศัพท์ของ SE ประจำเขต','อีเมลไปยังบริษัท','กดสนใจสั่งซื้อในเว็บไซต์'], answer:1, explanation:'ลูกค้าทำการติดต่อเข้ามาที่เบอร์โทรศัพท์หรือไลน์ของ Sales Executive ประจำเขตโดยตรง เพื่อทำการสั่งซื้อ' },
+    { id:'a29', text:'หลัง Sale Manager Assign Sale Admin ใน ATL แล้ว Sale Admin ต้องทำขั้นตอนใด? (ยกเว้นกรณีลูกค้ากดสนใจสั่งซื้อ)', options:['รอลูกค้ายืนยัน PO ก่อน','สร้าง ODL ใหม่เพื่อเชื่อมกับ ATL และแนบใบเสนอราคา','แนบใบเสนอราคาใน ATL โดยตรง','ส่ง SMS แจ้งลูกค้าว่าจะส่งใบเสนอราคา'], answer:1, explanation:'Sale Admin ต้องสร้าง ODL เพื่อนำมาเชื่อมกับ ATL นั้น และ Assign SE ใน ODL จากนั้นแนบใบเสนอราคาที่ ODL (ยกเว้นกรณีลูกค้ากดสนใจสั่งซื้อซึ่งมี ODL อยู่แล้ว)' },
+    { id:'a30', text:'ใน ATL Workflow มีกี่ Case หลักที่ Sales Executive / Partner ต้องรู้จัก?', options:['2 Case','3 Case','4 Case','5 Case'], answer:2, explanation:'ATL Workflow ของ SALE EXECUTIVE / PARTNER มี 4 Case หลัก ได้แก่ ลูกค้าติดต่อมาโดยตรง, Sales Executive วางแผนการทำงาน, ลูกค้ากดสนใจสั่งซื้อ, และลูกค้าติดต่อผ่าน Official Channel' },
+    { id:'a31', text:'หลังจาก Sales Executive ส่งเอกสารแนบอ้างอิงราคาในกลุ่มไลน์แล้ว Sale Manager ต้องทำขั้นตอนใดต่อ?', options:['สร้าง ODL ทันที','Tag Sale Admin ในกลุ่มไลน์ และ Assign Sale Admin ใน ATL','แนบใบเสนอราคาใน ATL โดยตรง','ยืนยัน PO ของลูกค้า'], answer:1, explanation:'Sale Manager จะ tag Sale Admin ในกลุ่มไลน์ก่อน จากนั้น Assign Sale Admin ที่ต้องสร้างใบเสนอราคาใน ATL โดยดูจากเลข Activity Link' },
+    { id:'a32', text:'ขั้นตอนหลังจาก PSE สร้าง ATL แล้วคืออะไร?', options:['รอ Sale Admin สร้าง ODL ทันที','กรอก ATL Forms และสร้าง FL Potential เพื่อวางแผนติดตาม','ส่ง DP ในไลน์ทันที','Assign OSE ใน ATL'], answer:1, explanation:'หลังสร้าง ATL แล้ว PSE ต้องกรอก ATL Forms และสร้าง FL Potential เพื่อวางแผนการติดตามลูกค้า' },
+    { id:'a33', text:'FL : Potential-A ต่างจาก FL : Potential-B อย่างไร?', options:['FL-A สำหรับ PSE, FL-B สำหรับ OSE','FL-A บันทึกข้อมูลโปรไฟล์ลูกค้า, FL-B บันทึกข้อมูลการเข้าพบ/โครงการ','FL-A และ FL-B เหมือนกัน','FL-A สำหรับลูกค้าใหม่, FL-B สำหรับลูกค้าเก่า'], answer:1, explanation:'FL Potential-A (Set A) บันทึกข้อมูลโปรไฟล์ลูกค้า ส่วน FL Potential-B (Set B) บันทึกข้อมูลการเข้าพบและข้อมูลโครงการ' },
+    { id:'a34', text:'Feedback Note ใน Follow Up Plans คืออะไร?', options:['บันทึกคะแนนลูกค้า','บันทึกผลการดำเนินงานและความคืบหน้าที่ SE กรอกหลังพบลูกค้า','ข้อมูลราคาเสนอ','หมายเหตุจาก Sale Manager'], answer:1, explanation:'Feedback Note คือบันทึกที่ SE กรอกเพื่อรายงานผลการดำเนินงานหลังเข้าพบหรือติดต่อลูกค้า ช่วยติดตามความคืบหน้าของ FL' },
+    { id:'a35', text:'ATL จะเชื่อมโยงกับ ODL ได้อย่างไร?', options:['SE สร้างการเชื่อมโยงเอง','Sale Admin สร้าง ODL ใหม่และเชื่อมกับ ATL','ระบบเชื่อมอัตโนมัติเสมอ','OSE ทำการเชื่อมโยง'], answer:1, explanation:'Sale Admin สร้าง ODL และเชื่อมโยงกับ ATL ที่เกี่ยวข้อง ยกเว้นกรณีลูกค้ากดสนใจสั่งซื้อที่ระบบสร้าง ODL อัตโนมัติ' },
+    { id:'a36', text:'Activity Forms ใน ATL มีทั้งหมดกี่ Set?', options:['1 Set','2 Set (A และ B)','3 Set (A, B และ C)','4 Set'], answer:2, explanation:'Activity Forms มี 3 Set: Set A (ข้อมูลโปรไฟล์ — PSE กรอก), Set B (ข้อมูลการเข้าพบ — PSE กรอก), Set C (ข้อมูลการได้รายการ — OSE กรอก)' },
+    { id:'a37', text:'PSE จะ Assign FL : Order ให้ OSE ได้เมื่อไร?', options:['ทันทีที่สร้าง ATL','หลังจากติ๊กยืนยันว่าได้รายการใน Activity Forms Set B แล้ว','เมื่อลูกค้าออก PO','หลังจาก Sale Admin สร้าง ODL'], answer:1, explanation:'PSE จะ Assign FL Order ให้ OSE ได้ก็ต่อเมื่อติ๊กยืนยันว่าได้รายการใน Set B แล้ว ซึ่งระบบจะสร้าง FL Order อัตโนมัติ' },
+    { id:'a38', text:'ใน ATL Workflow ใครเป็นผู้รับผิดชอบกรอก Activity Forms Set B?', options:['OSE','PSE กรอก Set B เพื่อบันทึกข้อมูลการเข้าพบ','Sale Admin','ลูกค้ากรอกเอง'], answer:1, explanation:'PSE เป็นผู้กรอก Activity Forms Set B (ข้อมูลการเข้าพบ) เพื่อบันทึกข้อมูลเมื่อเข้าพบลูกค้า' },
+  ],
+  order_link: [
+    { id:'o1', text:'ODL ย่อมาจากอะไร?', options:['Order Document Link','Order Link (Order Link Code)','Online Data Link','Official Deal Link'], answer:1, explanation:'ODL = Order Link หรือ Order Link Code คือลิงก์ติดตามคำสั่งซื้อ' },
+    { id:'o2', text:'สถานะ "รอ SQ" ของ Order Link หมายความว่าอะไร?', options:['คำสั่งซื้อถูกยกเลิก','คำสั่งซื้อยังไม่มีการแนบใบเสนอราคา','รอการชำระเงิน','รอการส่งสินค้า'], answer:1, explanation:'รอ SQ = Order Link ยังไม่มีการแนบใบเสนอราคา' },
+    { id:'o3', text:'สถานะ "รอ PO" ของ Order Link หมายความว่าอะไร?', options:['รอออกใบเสนอราคา','Sales Executive/Partner ยังไม่แนบใบยืนยันการสั่งซื้อ (PO)','รอยืนยันส่งสินค้า','รอการชำระเงิน'], answer:1, explanation:'รอ PO = Sales Executive/Partner ยังไม่มีการแนบใบยืนยันการสั่งซื้อ (PO)' },
+    { id:'o4', text:'สถานะ "กำลังดำเนินการ" ใน Order Link หมายถึงอะไร?', options:['Order Link ที่ยังไม่ได้รับ SQ','Order Link ที่ได้รับ Verify PO แล้ว แต่รอยืนยันชำระครบหรือส่งสินค้าครบ','Order Link ที่ถูกยกเลิก','Order Link ที่รอ Admin อนุมัติ'], answer:1, explanation:'กำลังดำเนินการ = ODL ที่ Verify PO แล้ว แต่รอยืนยันชำระครบหรือส่งสินค้าครบ' },
+    { id:'o5', text:'PO ย่อมาจากอะไร และ SE/Partner ต้องทำอะไรกับเอกสารนี้?', options:['Purchase Order = ต้องแนบลงใน ODL เพื่อยืนยันการสั่งซื้อ','Payment Order = ต้องส่งให้ Accounting','Production Order = ต้องส่งให้โรงงาน','Price Offer = ต้องแนบใน Activity Link'], answer:0, explanation:'PO = Purchase Order (ใบยืนยันการสั่งซื้อ) SE/Partner ต้องแนบ PO ลงใน ODL เพื่อให้ Admin ทำการ Verify' },
+    { id:'o6', text:'SQ ย่อมาจากอะไร?', options:['Sales Query','Sales Quotation (ใบเสนอราคา)','Stock Quantity','System Queue'], answer:1, explanation:'SQ = Sales Quotation หรือ ใบเสนอราคา' },
+    { id:'o7', text:'SV ย่อมาจากอะไร?', options:['Stock Value','Sales Verification','ใบส่งสินค้า','System Validation'], answer:2, explanation:'SV = ใบส่งสินค้าชั่วคราว' },
+    { id:'o8', text:'หลังจาก SE แนบ PO แล้ว ขั้นตอนต่อไปใน 2 Way Verify PO คืออะไร?', options:['SE กด Verify เอง','Admin ทำการตรวจสอบและ Verify PO','ลูกค้าต้องยืนยันอีกครั้ง','ระบบ Auto Verify อัตโนมัติ'], answer:1, explanation:'หลังจาก SE/Partner แนบ PO แล้ว Admin จะตรวจสอบและ Verify PO เป็น 2 ฝ่ายร่วมกัน' },
+    { id:'o9', text:'สถานะ "รออนุมัติ" ของ Order Link หมายความว่าอะไร?', options:['รอออกใบเสนอราคา','คำสั่งซื้อยังไม่ได้รับการ Verify PO จาก Admin','รอการชำระเงิน','รอการส่งสินค้า'], answer:1, explanation:'รออนุมัติ = คำสั่งซื้อยังไม่ได้รับการ Verify PO จากทาง Admin' },
+    { id:'o10', text:'เมื่อ SE ได้รับใบเสนอราคา (SQ) แล้ว ต้องนำไปให้ลูกค้าทำอะไรต่อ?', options:['ให้ลูกค้าชำระเงินทันที','ให้ลูกค้าออก PO เพื่อยืนยันการสั่งซื้อ','ให้ลูกค้า Review ODL','ให้ลูกค้าเซ็นรับสินค้า'], answer:1, explanation:'หลังได้ SQ SE จะนำไปให้ลูกค้าพิจารณา เมื่อลูกค้าตกลง ลูกค้าจะออก PO มายืนยันการสั่งซื้อ' },
+    { id:'o11', text:'SRV ย่อมาจากอะไร?', options:['Stock Return Value','ใบรับคืนสินค้าจากการขาย','Sales Reverse','System Rejection Value'], answer:1, explanation:'SRV = ใบรับคืนสินค้าจากการขาย' },
+    { id:'o12', text:'ใน ODL 3 Green Status วงกลมที่ 2 (เขียว) หมายถึงอะไร?', options:['ยืนยันคำสั่งซื้อแล้ว','ยืนยันชำระเงินครบแล้ว','ยืนยันส่งสินค้าครบแล้ว','ยกเลิก ODL'], answer:1, explanation:'ODL 3 Green: วงกลม 1=คำสั่งซื้อ, วงกลม 2=ชำระเงิน, วงกลม 3=ส่งสินค้า' },
+    { id:'o13', text:'Timeline ใน Order Link แสดงสถานะกี่วงกลม และเรียงลำดับอย่างไร?', options:['2 วงกลม: ชำระเงิน → ส่งสินค้า','3 วงกลม: คำสั่งซื้อ → ชำระเงิน → ส่งสินค้า','4 วงกลม: สร้าง → อนุมัติ → ชำระ → ส่ง','3 วงกลม: อนุมัติ → ชำระ → ปิด Order'], answer:1, explanation:'Timeline มี 3 วงกลม: วงที่ 1 = สถานะคำสั่งซื้อ, วงที่ 2 = สถานะชำระเงิน, วงที่ 3 = สถานะส่งสินค้า' },
+    { id:'o14', text:'History Logs ใน Order Link แสดงข้อมูลอะไรบ้าง?', options:['รายการสินค้าที่สั่งซื้อ','วันที่-เวลา, รายการที่เกิดขึ้น และผู้กระทำ','ยอดเงินที่ต้องชำระ','ข้อมูลผู้ส่งสินค้า'], answer:1, explanation:'History Logs แสดง: วันที่และเวลา, รายการที่เกิดขึ้น, ผู้กระทำ ครบทุก action ที่เกิดใน ODL' },
+    { id:'o15', text:'การ Review ODL ลูกค้าสามารถให้ดาวประเมินได้กี่หัวข้อ?', options:['1 หัวข้อ','2 หัวข้อ','3 หัวข้อ','4 หัวข้อ'], answer:2, explanation:'ลูกค้าประเมิน 3 หัวข้อ: สั่งซื้อ, ชำระเงิน, ส่งสินค้า โดยให้ดาวและแสดงความคิดเห็นแยกกันแต่ละหัวข้อ' },
+    { id:'o16', text:'การ Review ODL จะปรากฏให้ลูกค้าทำได้เมื่อใด?', options:['เมื่อ SE แนบ PO แล้ว','เมื่อ ODL ดำเนินการเสร็จสิ้นสมบูรณ์ครบทั้ง 3 วงกลมเป็นสีเขียว','เมื่อชำระเงินครบ','เมื่อสร้าง ODL ครั้งแรก'], answer:1, explanation:'Review ODL จะปรากฏหลัง ODL เสร็จสิ้นครบทั้ง 3 สถานะ (วงกลมทั้ง 3 เป็นสีเขียว)' },
+    { id:'o17', text:'เมื่อมีการแก้ไขเอกสารใน Timeline ระบบจะแสดงผลอย่างไร?', options:['สร้างรายการใหม่แยกต่างหาก','บันทึกซ้ำที่รายเดิม พร้อมตัวอักษรสีแดงระบุวันที่แก้ไข','ลบรายการเดิมออก','ส่ง Email แจ้ง Admin'], answer:1, explanation:'การแก้ไขเอกสารใน Timeline จะบันทึกซ้ำที่รายเดิม โดยมีตัวอักษรสีแดงกำกับว่ามีการแก้ไขเมื่อวันที่และเวลาใด' },
+    { id:'o18', text:'ในการตรวจสอบราคาเหล็กด้วยโปรแกรม Dynamic Price SE ต้องกรอกข้อมูลอะไรก่อน?', options:['ชื่อลูกค้า','เลข Activity Link ของลูกค้าที่ต้องการทำใบเสนอราคา','รหัสสินค้า','เบอร์โทรลูกค้า'], answer:1, explanation:'SE ต้องกรอกเลข Activity Link ของลูกค้าใน Dynamic Price เพื่อเชื่อมโยงราคาเหล็กกับ ATL นั้น' },
+    { id:'o19', text:'หลังจาก SE ส่งเอกสารแนบอ้างอิงราคาในกลุ่มไลน์แล้ว ต้อง tag ใคร?', options:['Sales Admin','OSE','Sale Manager','ลูกค้า'], answer:2, explanation:'SE ส่งเอกสารแนบอ้างอิงราคาในกลุ่มไลน์และต้อง tag Sale Manager เพื่อมอบหมายงานต่อ' },
+    { id:'o20', text:'ใครเป็นผู้ Assign Sale Admin ใน ATL เพื่อดูแลการสร้าง ODL?', options:['Sales Executive','OSE','Sale Manager','Accounting Staff'], answer:2, explanation:'Sale Manager เป็นผู้ Assign Sale Admin ที่ต้องสร้างใบเสนอราคาใน ATL โดยดูจากเลข Activity Link' },
+    { id:'o21', text:'"Activity Link รอยืนยันสั่งซื้อ" ใน VRPortal ของ SE หมายถึงอะไร?', options:['ATL ที่ยังไม่ได้สร้าง','ATL ที่เชื่อมกับ ODL แล้ว แต่ยังไม่ได้รับการ Verify PO','ATL ที่ถูกยกเลิก','ATL ที่รอ Admin อนุมัติ'], answer:1, explanation:'Activity Link รอยืนยันสั่งซื้อ = ATL ที่มีการเชื่อมกับ Order Link แล้ว แต่ยังไม่ได้รับการ Verify PO' },
+    { id:'o22', text:'SE ต้องตรวจสอบข้อมูลลูกค้าจากช่องทางใดก่อนสร้าง Activity Link?', options:['โทรถามลูกค้าอย่างเดียว','ตรวจสอบข้อมูลสมาชิกบนเว็บไซต์ และข้อมูลลูกค้าในระบบ ERP','ดูจาก Mini CDP เท่านั้น','ดูจาก Google Sheets'], answer:1, explanation:'SE ต้องตรวจสอบข้อมูลสมาชิกบนเว็บไซต์ และตรวจสอบข้อมูลบัญชีลูกหนี้ในระบบ ERP ก่อนสร้าง ATL' },
+    { id:'o23', text:'ใน Timeline แต่ละสถานะบันทึกรายละเอียดอะไรบ้าง?', options:['เฉพาะวันที่และเวลา','ไอคอนของการกระทำ, รายการ, ผู้กระทำ, วันที่และเวลา','เฉพาะชื่อผู้กระทำ','เฉพาะรายการเอกสาร'], answer:1, explanation:'Timeline บันทึก: ไอคอนของการกระทำ, รายการ, ผู้กระทำ, วันที่และเวลา ในแต่ละสถานะ' },
+    { id:'o24', text:'ODL 3 Green Status วงกลมที่ 3 (เขียว) หมายถึงอะไร?', options:['ยืนยันคำสั่งซื้อแล้ว','ยืนยันชำระเงินครบแล้ว','ยืนยันส่งสินค้าครบแล้ว','ยกเลิก ODL'], answer:2, explanation:'ODL 3 Green: วงกลม 1=สถานะคำสั่งซื้อ, วงกลม 2=สถานะชำระเงิน, วงกลม 3=สถานะส่งสินค้า' },
+    { id:'o25', text:'SE ติดตามสถานะคำสั่งซื้อของลูกค้าได้จากที่ใดใน VRPortal?', options:['Activity Link','Follow Up Plans','Order Link','Mini CDP'], answer:2, explanation:'SE ติดตามสถานะคำสั่งซื้อผ่านเมนู Order Link ใน VRPortal ซึ่งแสดงสถานะ รอ SQ, รอ PO, รออนุมัติ, กำลังดำเนินการ' },
+    { id:'o26', text:'กฎ "1 ODL" ของระบบ VRSteel หมายความว่าอะไร?', options:['1 ลูกค้า = 1 ODL เสมอ','1 ครั้งของการสร้างใบเสนอราคา / 1 ครั้งชำระเงิน / 1 ครั้งจัดส่งสินค้า = 1 ODL','1 SE = 1 ODL ต่อวัน','1 สินค้า = 1 ODL'], answer:1, explanation:'กฎ 1 ODL หมายถึง 1 ครั้งของการสร้างใบเสนอราคา หรือ 1 ครั้งต่อการชำระเงิน หรือ 1 ครั้งต่อการจัดส่งสินค้า = 1 ODL ที่ถูกสร้าง' },
+    { id:'o27', text:'หากลูกค้าสั่งสินค้าพร้อมกัน แต่มีช่วงเวลาชำระเงินและจัดส่งต่างกัน ควรสร้าง ODL อย่างไร?', options:['สร้าง ODL เดียวรวมทุกรายการ','สร้าง ODL แยกตามแต่ละช่วงเวลาที่เกิดขึ้น','รอให้ครบทุกรอบก่อนจึงสร้าง ODL เดียว','ให้ลูกค้าเลือกว่าต้องการสร้างกี่ ODL'], answer:1, explanation:'กรณีลูกค้าสั่งสินค้าพร้อมกัน แต่ช่วงเวลาชำระเงินหรือจัดส่งต่างกัน ให้สร้าง ODL รองรับตามแต่ละช่วงที่เกิดขึ้น' },
+    { id:'o28', text:'ในขั้นตอน Assign ผู้ดูแล ODL ต้องมีผู้ใช้งานขั้นต่ำกี่คน และประกอบด้วยใครบ้าง?', options:['2 คน — Sales Executive และ Sale Manager','3 คน — Sales Executive ประจำเขต, Sale Supervisor, Sale Manager','2 คน — Sale Admin และ Sale Manager','3 คน — Sales Executive, Sale Admin, Sale Manager'], answer:1, explanation:'ในขั้นตอน Assign ต้องทำการ Assign User ขั้นต่ำ 3 คน ได้แก่ Sales Executive ประจำเขต, Sale Supervisor และ Sale Manager' },
+    { id:'o29', text:'ใน ODL Workflow หลังจาก Sale Admin แนบใบเสนอราคาแล้ว Sales Executive ต้องทำอะไรต่อ?', options:['รอลูกค้าชำระเงินโดยไม่ต้องทำอะไรเพิ่ม','ติดตามลูกค้าและอัปเดต FL Order','สร้าง Pay Link ทันที','แนบ PO ให้ลูกค้าโดยไม่ต้องติดตาม'], answer:1, explanation:'หลังจากมีใบเสนอราคาแล้ว SE ต้องสร้าง FL Order และอัปเดต FL Order เพื่อติดตามลูกค้าตามแผนงาน รวมถึงอัปเดต ATL Forms ต่อเนื่อง' },
+    { id:'o30', text:'ใน ODL Workflow ขั้นตอน "2 Way Verify PO" หมายความว่าอะไร?', options:['ลูกค้าต้องยืนยัน 2 ครั้งก่อนสั่งซื้อ','SE แนบ PO และ Admin ตรวจสอบ/ยืนยัน PO ในระบบ','ต้องมี 2 ลายเซ็นอนุมัติ PO','Sale Manager ยืนยัน PO 2 รอบ'], answer:1, explanation:'2 Way Verify PO คือกระบวนการที่ Sales Executive/Partner ทำการแนบใบยืนยันการสั่งซื้อ (PO) และ Admin ทำการ Verify PO ในระบบ' },
+    { id:'o31', text:'ใน ODL Workflow กรณีลูกค้ากดสนใจสั่งซื้อมา Sale Admin จะไม่ต้องทำขั้นตอนใด?', options:['แนบใบเสนอราคา','Assign Sale Executive ใน ODL','สร้าง ODL ใหม่','เชื่อม ATL กับ ODL'], answer:2, explanation:'กรณีลูกค้ากดสนใจสั่งซื้อ ระบบจะสร้าง ODL อัตโนมัติ ดังนั้น Sale Admin ไม่ต้องสร้าง ODL ใหม่ แต่ยังต้องทำขั้นตอนอื่น ๆ ครบ' },
+    { id:'o32', text:'ลูกค้าจะได้รับ Pay Link เมื่อใด?', options:['ทันทีที่ SE สร้าง ODL','หลังจาก PO ได้รับการ Verify แล้ว Sale Admin/Accounting สร้าง Pay Link','เมื่อ SE แนบ SQ','เมื่อ ODL ครบทั้ง 3 วงกลม'], answer:1, explanation:'ลูกค้าจะได้รับ Pay Link หลังจาก PO ได้รับการ Verify แล้ว โดย Sale Admin หรือ Accounting Staff เป็นผู้สร้าง' },
+    { id:'o33', text:'SRV (ใบรับคืนสินค้า) ใน Order Link เกิดขึ้นในกรณีใด?', options:['ทุก ODL ที่ดำเนินการครบ','กรณีที่มีการคืนสินค้าจากการขาย','เมื่อลูกค้าชำระเงินแล้ว','เมื่อ Sale Admin ออก SQ'], answer:1, explanation:'SRV จะถูกสร้างเฉพาะกรณีที่มีการคืนสินค้าเท่านั้น ไม่ได้เกิดขึ้นกับทุก ODL' },
+    { id:'o34', text:'ใน ODL Workflow ใครเป็นผู้สร้าง Pay Link ให้ลูกค้า?', options:['Sales Executive','Sale Manager','Sale Admin หรือ Accounting Staff','ลูกค้าสร้างเอง'], answer:2, explanation:'Sale Admin หรือ Accounting Staff เป็นผู้สร้าง Pay Link ให้ลูกค้าหลังจาก PO ได้รับการ Verify แล้ว' },
+    { id:'o35', text:'หลังจากลูกค้าชำระเงินครบ (วงกลมที่ 2 เขียว) ขั้นตอนต่อไปใน ODL คืออะไร?', options:['ปิด ODL ทันที','จัดส่งสินค้าและรอยืนยันส่งครบ (วงกลมที่ 3)','สร้าง ODL ใหม่','ให้ลูกค้า Review ODL ทันที'], answer:1, explanation:'หลังชำระเงินครบแล้ว ขั้นตอนต่อไปคือจัดส่งสินค้าเพื่อให้วงกลมที่ 3 (สถานะส่งสินค้า) เป็นสีเขียว ก่อน ODL จะเสร็จสมบูรณ์' },
+    { id:'o36', text:'กรณีลูกค้ากดสนใจสั่งซื้อ ต่างจากลูกค้าโทรมาอย่างไรใน ODL Workflow?', options:['กรณีกดสนใจ — Sale Admin ต้องสร้าง ODL เอง','กรณีกดสนใจ — ระบบสร้าง ODL อัตโนมัติ, กรณีโทรมา — Sale Admin ต้องสร้าง ODL','ทั้ง 2 กรณีเหมือนกันทุกขั้นตอน','กรณีกดสนใจ — ไม่ต้อง Assign SE'], answer:1, explanation:'เมื่อลูกค้ากดสนใจสั่งซื้อ ระบบสร้าง ODL ให้อัตโนมัติ ต่างจากกรณีทั่วไปที่ Sale Admin ต้องสร้าง ODL เองและเชื่อมกับ ATL' },
+    { id:'o37', text:'ใน Review ODL ลูกค้าให้คะแนนในรูปแบบใด?', options:['กรอกตัวเลขคะแนน 0-100','ให้ดาว 1-5 ดาวพร้อมแสดงความคิดเห็นแยกแต่ละหัวข้อ','เลือก ผ่าน/ไม่ผ่าน','กรอก Comment อย่างเดียวโดยไม่มีดาว'], answer:1, explanation:'ลูกค้าให้คะแนนด้วยดาว 1-5 ดาว พร้อมแสดงความคิดเห็นในแต่ละหัวข้อ ได้แก่ สั่งซื้อ, ชำระเงิน, ส่งสินค้า' },
+    { id:'o38', text:'ใน ODL SE สามารถตรวจสอบเอกสารใดได้บ้างใน Timeline?', options:['เฉพาะ SQ','เฉพาะ PO และ SQ','SQ, PO, SV, Pay Link, INV และเอกสารอื่นๆ ทุกรายการที่เกิดขึ้นใน ODL','เฉพาะ Pay Link'], answer:2, explanation:'Timeline แสดงเอกสารและ action ทุกรายการที่เกิดขึ้นใน ODL รวมถึง SQ, PO, SV, Pay Link, INV และเอกสารอื่นๆ' },
+  ],
+  mini_cdp: [
+    { id:'m1', text:'Mini CDP โปรแกรมย่อย Sales Assistant ใช้สำหรับอะไร?', options:['ตรวจสอบราคาเหล็ก','แบ่งจัดสรรลูกค้า (ARCode) ให้กับ PSE','ออกใบเสนอราคา','ติดตามการส่งสินค้า'], answer:1, explanation:'Sales Assistant ใช้แบ่งจัดสรรลูกค้าให้กับ PSE ที่คอลัมน์ PSE Code' },
+    { id:'m2', text:'เงื่อนไขการจัดสรร ARCode ใน Mini CDP สำหรับ Group 2 กำหนดกี่ ARCode ต่อ PSE 1 คน?', options:['5 ARCode','10 ARCode','15 ARCode','25 ARCode'], answer:1, explanation:'Group 2 = 10 ARCode ต่อ PSE 1 คน' },
+    { id:'m3', text:'เงื่อนไขการจัดสรร ARCode สำหรับ Group 3 กำหนดกี่ ARCode ต่อ PSE 1 คน?', options:['10 ARCode','15 ARCode','20 ARCode','25 ARCode'], answer:1, explanation:'Group 3 = 15 ARCode ต่อ PSE 1 คน' },
+    { id:'m4', text:'เงื่อนไขการจัดสรร ARCode สำหรับ Group 4 กำหนดกี่ ARCode ต่อ PSE 1 คน?', options:['10 ARCode','15 ARCode','20 ARCode','25 ARCode'], answer:3, explanation:'Group 4 = 25 ARCode ต่อ PSE 1 คน' },
+    { id:'m5', text:'หาก ARCode มีการสับเปลี่ยนตำแหน่งใน Mini CDP ควรทำอย่างไร?', options:['เปลี่ยน PSE ที่รับผิดชอบทันที','คง PSE ยึดที่ลำดับเดิมเป็นหลัก','แบ่งใหม่ทั้งหมด','รายงานให้ Admin ตัดสิน'], answer:1, explanation:'หาก ARCode มีการสับเปลี่ยน ให้ PSE คงยึดที่ลำดับเดิมเป็นหลัก' },
+    { id:'m6', text:'ขั้นตอนแรกในการจัดสรรลูกค้าใน Mini CDP คืออะไร?', options:['Running ARCode ตาม Grouping','จัด Ranking ให้ ARCode','แยกรายชื่อ ARCode ตาม Team ของ PSE','จัดสรร ARCode ให้ PSE'], answer:2, explanation:'ขั้นตอนแรก = แยกรายชื่อ ARCode ตาม Team ของ PSE (Team1, Team2)' },
+    { id:'m7', text:'ARCode คืออะไร?', options:['รหัสพนักงาน','รหัสสินค้า','รหัสลูกค้า','รหัสคำสั่งซื้อ'], answer:2, explanation:'ARCode = รหัสลูกค้า (Account Receivable Code) ใช้ระบุลูกค้าในระบบ' },
+    { id:'m8', text:'ขั้นตอนที่ 2 ของการจัดสรรลูกค้าใน Mini CDP คืออะไร?', options:['แยกตาม Team','Running ARCode ตาม Grouping ของลูกค้า','จัด Ranking ให้ ARCode','จัดสรรให้ PSE'], answer:1, explanation:'ขั้นตอน: 1.แยกตาม Team → 2.Running ตาม Grouping → 3.จัด Ranking → 4.จัดสรรให้ PSE' },
+    { id:'m9', text:'การจัดสรร ARCode ให้ PSE ใน Mini CDP ทำในลักษณะใด?', options:['แบ่งพร้อมกันทุกคนในครั้งเดียว','แบ่งทีละกลุ่มตามจำนวนที่กำหนด ไล่จาก PSE คนที่ 1 วนไปเรื่อยๆ','สุ่มให้แต่ละคน','ให้ PSE เลือกเอง'], answer:1, explanation:'แบ่งลูกค้าทีละตามจำนวน ARCode ที่กำหนดให้ PSE คนที่ 1 จากนั้นไล่ไปถึง PSE คนที่ 2 วนไปเรื่อยๆ จนครบ' },
+    { id:'m10', text:'PSE Code ในโปรแกรม Mini CDP หมายถึงอะไร?', options:['รหัสเข้าระบบของ PSE','คอลัมน์ที่แสดงว่า ARCode นี้ถูกจัดสรรให้ PSE คนใด','รหัสทีมของ PSE','จำนวน ARCode ที่ PSE ดูแล'], answer:1, explanation:'PSE Code = คอลัมน์ที่ระบุว่าลูกค้า (ARCode) นั้นถูกจัดสรรให้ PSE คนไหนดูแล' },
+    { id:'m11', text:'ขั้นตอนที่ 3 ของการจัดสรรลูกค้าใน Mini CDP คืออะไร?', options:['Running ARCode ตาม Grouping','แยก ARCode ตาม Team','จัด Ranking ให้ ARCode','จัดสรร ARCode ให้ PSE'], answer:2, explanation:'4 ขั้นตอน: 1.แยกตาม Team → 2.Running ตาม Grouping → 3.จัด Ranking → 4.จัดสรรให้ PSE' },
+    { id:'m12', text:'ขั้นตอนที่ 4 และขั้นตอนสุดท้ายของการจัดสรรลูกค้าใน Mini CDP คืออะไร?', options:['จัด Ranking ให้ ARCode','Running ARCode ตาม Grouping','แยก ARCode ตาม Team','จัดสรร ARCode ให้ PSE ตามเงื่อนไข Group'], answer:3, explanation:'ขั้นตอนสุดท้ายคือการจัดสรร ARCode ให้ PSE ตามจำนวนที่กำหนดในแต่ละ Group' },
+    { id:'m13', text:'การ "Running ARCode ตาม Grouping" ใน Mini CDP หมายถึงอะไร?', options:['การลบ ARCode ที่ไม่ใช้งาน','การเรียงลำดับ ARCode ตาม Group ของลูกค้า','การสร้าง ARCode ใหม่','การรวม ARCode จากหลายทีม'], answer:1, explanation:'Running ARCode ตาม Grouping = การเรียงลำดับ ARCode ตาม Group ของลูกค้า เป็นขั้นตอนที่ 2 ก่อนจัด Ranking' },
+    { id:'m14', text:'Group ของลูกค้าใน Mini CDP กำหนดโดยยึดอะไรเป็นหลัก?', options:['จำนวน ARCode ที่ PSE เคยดูแล','ตำแหน่งที่ตั้งของลูกค้า','ประเภทหรือยอดซื้อของลูกค้า (Grouping ของลูกค้า)','อายุของ ARCode ในระบบ'], answer:2, explanation:'Grouping ของลูกค้าในระบบเป็นตัวกำหนดว่า ARCode นั้นอยู่ใน Group 2, 3 หรือ 4 ซึ่งจะมีจำนวน ARCode ต่อ PSE แตกต่างกัน' },
+    { id:'m15', text:'ถ้ามีลูกค้า Group 3 จำนวน 45 ราย และ PSE 3 คน แต่ละคนจะได้ดูแลกี่ราย?', options:['10 ราย','15 ราย','20 ราย','45 ราย'], answer:1, explanation:'Group 3 กำหนดไว้ที่ 15 ARCode ต่อ PSE 1 คน ดังนั้น PSE แต่ละคนจะได้ดูแล 15 ARCode' },
+    { id:'m16', text:'ผลลัพธ์สุดท้ายที่ได้จาก Mini CDP หลังจัดสรรครบทุกขั้นตอนคืออะไร?', options:['ใบเสนอราคา (SQ) สำหรับลูกค้าแต่ละราย','คอลัมน์ PSE Code แสดงว่า ARCode แต่ละรายถูกจัดสรรให้ PSE คนใด','รายงานยอดขายของ PSE แต่ละคน','ใบสั่งซื้อ (PO) ของลูกค้า'], answer:1, explanation:'ผลลัพธ์ของ Mini CDP คือคอลัมน์ PSE Code ที่แสดงชัดเจนว่า ARCode แต่ละรายถูกจัดสรรให้ PSE คนใดดูแล' },
+    { id:'m17', text:'ถ้ามีลูกค้า Group 4 จำนวน 75 ราย และ PSE 3 คน แต่ละคนได้ดูแลกี่ราย?', options:['20 ราย','25 ราย','30 ราย','75 ราย'], answer:1, explanation:'Group 4 กำหนดไว้ที่ 25 ARCode ต่อ PSE 1 คน ดังนั้น 75 ÷ 3 = PSE แต่ละคนได้ 25 ราย' },
+    { id:'m18', text:'ขั้นตอน "จัด Ranking ให้ ARCode" อยู่ในลำดับที่เท่าไรของ Mini CDP?', options:['ขั้นตอนที่ 1','ขั้นตอนที่ 2','ขั้นตอนที่ 3','ขั้นตอนที่ 4'], answer:2, explanation:'ลำดับ 4 ขั้นตอน: 1.แยกตาม Team → 2.Running ตาม Grouping → 3.จัด Ranking → 4.จัดสรรให้ PSE' },
+    { id:'m19', text:'เมื่อ PSE คนแรกได้รับ ARCode ครบตามเกณฑ์แล้ว ARCode ที่เหลือจะเกิดอะไรขึ้น?', options:['ส่งให้ Sale Manager ดูแล','ระบบจัดสรรให้ PSE คนถัดไป วนไปเรื่อยๆ จนครบ','ARCode ที่เหลือถูกยกเว้นออก','แบ่งให้ OSE ดูแลแทน'], answer:1, explanation:'เมื่อ PSE คนที่ 1 ได้ ARCode ครบตามกำหนด จะไล่จัดสรรให้ PSE คนที่ 2 ต่อไป วนไปเรื่อยๆ จนครบทุก ARCode' },
+    { id:'m20', text:'Mini CDP แบ่งลูกค้าออกเป็นกี่ Group หลัก?', options:['2 Group','3 Group (Group 2, 3, 4)','4 Group','5 Group'], answer:1, explanation:'Mini CDP แบ่งลูกค้าเป็น 3 Group หลัก ได้แก่ Group 2 (10/PSE), Group 3 (15/PSE) และ Group 4 (25/PSE)' },
+    { id:'m21', text:'Group 2 ต่างจาก Group 4 ใน Mini CDP อย่างไร?', options:['Group 2 มี ARCode ต่อ PSE น้อยกว่า Group 4 (10 vs 25)','Group 2 มี ARCode ต่อ PSE มากกว่า Group 4','Group 2 และ Group 4 มีจำนวน ARCode เท่ากัน','Group 2 ไม่มีในระบบ'], answer:0, explanation:'Group 2 = 10 ARCode/PSE, Group 4 = 25 ARCode/PSE ดังนั้น Group 2 มี ARCode ต่อ PSE น้อยกว่า Group 4' },
+    { id:'m22', text:'วัตถุประสงค์หลักของ Mini CDP คืออะไร?', options:['ตรวจสอบราคาเหล็ก','จัดสรรลูกค้า (ARCode) ให้ PSE อย่างเป็นระบบ','ออกใบเสนอราคา','ติดตามสถานะ Order'], answer:1, explanation:'Mini CDP มีวัตถุประสงค์เพื่อจัดสรรลูกค้า (ARCode) ให้กับ PSE แต่ละคนอย่างเป็นระบบตามกลุ่มและจำนวนที่กำหนด' },
+    { id:'m23', text:'ขั้นตอนแรก "แยกรายชื่อ ARCode ตาม Team" ใน Mini CDP หมายความว่าอะไร?', options:['แบ่ง ARCode ตามประเภทสินค้า','แยกว่า ARCode อยู่ในพื้นที่ Team 1 หรือ Team 2 ของ PSE','แบ่ง ARCode ตามยอดซื้อ','แบ่ง ARCode ให้ OSE'], answer:1, explanation:'ขั้นตอนแรกคือการแยกว่า ARCode แต่ละรายอยู่ในพื้นที่ความรับผิดชอบของ Team 1 หรือ Team 2 ก่อนดำเนินการขั้นต่อไป' },
+    { id:'m24', text:'PSE จะรู้ว่าตัวเองรับผิดชอบลูกค้า (ARCode) รายใดบ้างได้จากอะไร?', options:['รายงาน PDF จาก Sale Manager','คอลัมน์ PSE Code ในโปรแกรม Mini CDP','ระบบส่ง Email แจ้งแต่ละคน','Sale Manager แจ้งปากเปล่า'], answer:1, explanation:'PSE ดูได้จากคอลัมน์ PSE Code ใน Mini CDP ซึ่งระบุชัดเจนว่า ARCode แต่ละรายถูกจัดสรรให้ PSE คนใดดูแล' },
+    { id:'m25', text:'ถ้า PSE 1 คน รับ Group 2 จำนวน 10 ราย และ Group 3 จำนวน 15 ราย PSE คนนั้นดูแลลูกค้ารวมทั้งหมดกี่ราย?', options:['10 ราย','15 ราย','25 ราย','50 ราย'], answer:2, explanation:'PSE ดูแล Group 2 (10 ราย) + Group 3 (15 ราย) = รวม 25 ราย' },
+  ],
+};
+
+// Build mixed category from all
+QUESTION_BANK.mixed = [
+  ...QUESTION_BANK.pse_ose_roles,
+  ...QUESTION_BANK.vrportal,
+  ...QUESTION_BANK.activity_link,
+  ...QUESTION_BANK.order_link,
+  ...QUESTION_BANK.mini_cdp,
+];
+
+// ========== INITIALIZATION ==========
+let currentQuiz = null;
+let quizTimer = null;
+let timerSeconds = 0;
+
+const QUIZ_BANK_VERSION = '9'; // bump เมื่อแก้ไข question bank
+
+async function init() {
+  await loadFromSupabase();
+  // Reset quiz sets เมื่อ question bank เปลี่ยนแปลง (version mismatch)
+  const savedVersion = DB.get('bankVersion', null);
+  if (savedVersion !== QUIZ_BANK_VERSION) {
+    DB.set('quizSets', null);
+    DB.set('bankVersion', QUIZ_BANK_VERSION);
+  }
+
+  // Seed default quiz sets if empty
+  let sets = DB.get('quizSets', null);
+  if (!sets) {
+    sets = [
+      createQuizSet('PSE & OSE บทบาทและโครงสร้างทีม', 'pse_ose_roles', 10, 15, 70),
+      createQuizSet('VRPortal & ระบบการใช้งาน', 'vrportal', 8, 15, 70),
+      createQuizSet('Activity Link & Follow Up Plans', 'activity_link', 10, 15, 70),
+      createQuizSet('Order Link & สถานะเอกสาร', 'order_link', 10, 15, 70),
+      createQuizSet('Mini CDP & การจัดสรรลูกค้า', 'mini_cdp', 8, 10, 70),
+      createQuizSet('ทดสอบรวมทุกหัวข้อ (Mixed)', 'mixed', 20, 25, 70),
+    ];
+    DB.set('quizSets', sets);
+  }
+
+  // Settings defaults
+  if (!DB.get('adminPass', null)) DB.set('adminPass', 'admin1234');
+
+  // Merge คำถามที่ Admin เพิ่มเองเข้า QUESTION_BANK
+  mergeCustomQuestions();
+
+  renderQuizLogin();
+  renderDashboard();
+}
+
+// ========== QUESTION BANK MANAGER ==========
+
+const CAT_LABELS = {
+  pse_ose_roles: 'บทบาท PSE & OSE',
+  vrportal: 'VRPortal & ระบบ',
+  activity_link: 'Activity Link & FL',
+  order_link: 'Order Link & สถานะเอกสาร',
+  mini_cdp: 'Mini CDP & การจัดสรรลูกค้า',
+};
+
+function mergeCustomQuestions() {
+  const customs = DB.get('customQuestions', []);
+  customs.forEach(q => {
+    const cat = q.category;
+    if (!QUESTION_BANK[cat]) return;
+    if (!QUESTION_BANK[cat].find(x => x.id === q.id)) {
+      QUESTION_BANK[cat].push(q);
+    }
+  });
+  // Rebuild mixed
+  QUESTION_BANK.mixed = [
+    ...QUESTION_BANK.pse_ose_roles,
+    ...QUESTION_BANK.vrportal,
+    ...QUESTION_BANK.activity_link,
+    ...QUESTION_BANK.order_link,
+    ...QUESTION_BANK.mini_cdp,
+  ];
+}
+
+function addCustomQuestion() {
+  const cat  = document.getElementById('bank-cat').value;
+  const text = document.getElementById('bank-q').value.trim();
+  const a    = document.getElementById('bank-a').value.trim();
+  const b    = document.getElementById('bank-b').value.trim();
+  const c    = document.getElementById('bank-c').value.trim();
+  const d    = document.getElementById('bank-d').value.trim();
+  const ans  = parseInt(document.getElementById('bank-ans').value);
+  const exp  = document.getElementById('bank-exp').value.trim();
+
+  if (!text || !a || !b || !c || !d) {
+    showToast('⚠️ กรุณากรอกคำถามและตัวเลือก A-D ให้ครบ');
+    return;
+  }
+
+  const q = {
+    id: 'cq_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    category: cat,
+    text,
+    options: [a, b, c, d],
+    answer: ans,
+    explanation: exp,
+    isCustom: true,
+  };
+
+  const customs = DB.get('customQuestions', []);
+  customs.push(q);
+  DB.set('customQuestions', customs);
+
+  // เพิ่มเข้า QUESTION_BANK ทันที
+  QUESTION_BANK[cat].push(q);
+  QUESTION_BANK.mixed.push(q);
+
+  showToast('✅ เพิ่มคำถามสำเร็จ! คลัง ' + CAT_LABELS[cat] + ' มี ' + QUESTION_BANK[cat].length + ' ข้อ');
+
+  // Clear form (เก็บ category ไว้)
+  ['bank-q','bank-a','bank-b','bank-c','bank-d','bank-exp'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('bank-ans').value = '0';
+
+  renderAdminPanel();
+  // scroll กลับไปที่ form
+  document.getElementById('admin-quiz-list').scrollTop = 0;
+}
+
+function deleteCustomQuestion(id) {
+  if (!confirm('ลบคำถามนี้ออกจากคลัง?')) return;
+  let customs = DB.get('customQuestions', []);
+  const q = customs.find(x => x.id === id);
+  if (!q) return;
+  customs = customs.filter(x => x.id !== id);
+  DB.set('customQuestions', customs);
+
+  const cat = q.category;
+  QUESTION_BANK[cat]  = QUESTION_BANK[cat].filter(x => x.id !== id);
+  QUESTION_BANK.mixed = QUESTION_BANK.mixed.filter(x => x.id !== id);
+
+  showToast('🗑 ลบคำถามแล้ว');
+  renderAdminPanel();
+}
+
+// ========== END QUESTION BANK MANAGER ==========
+
+function createQuizSet(title, category, count, timeLimit, passScore) {
+  return {
+    id: 'qs_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    title,
+    category,
+    count,
+    timeLimit,
+    passScore,
+    status: 'published',
+    createdAt: new Date().toISOString(),
+  };
+}
+
+// ========== NAVIGATION ==========
+function showPage(page) {
+  if (page === 'dashboard' && !DB.get('adminLoggedIn', false)) {
+    showPage('admin');
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navBtn = document.getElementById('nav-' + page);
+  if (navBtn) navBtn.classList.add('active');
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'quiz') renderQuizLogin();
+  if (page === 'practical') renderPracticalPage();
+  if (page === 'admin' && DB.get('adminLoggedIn', false)) renderAdminPanel();
+}
+
+// ========== QUIZ LOGIN ==========
+function renderQuizLogin() {
+  const sets = DB.get('quizSets', []).filter(s => s.status === 'published');
+  const sel = document.getElementById('q-set-select');
+  if (sel) {
+    sel.innerHTML = sets.length
+      ? sets.map(s => `<option value="${s.id}">${s.title}</option>`).join('')
+      : '<option value="">ยังไม่มีชุดข้อสอบที่ published</option>';
+  }
+  document.getElementById('quiz-login-screen').style.display = '';
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'none';
+}
+
+function startQuiz() {
+  const name = document.getElementById('q-name').value.trim();
+  const role = document.getElementById('q-role').value;
+  const setId = document.getElementById('q-set-select').value;
+  const alert = document.getElementById('quiz-login-alert');
+
+  if (!name) { alert.innerHTML = '<div class="alert alert-error">กรุณากรอกชื่อ-นามสกุล</div>'; return; }
+  if (!setId) { alert.innerHTML = '<div class="alert alert-error">ยังไม่มีชุดข้อสอบ</div>'; return; }
+
+  // Check if already taken this set
+  const results = DB.get('quizResults', []);
+  const alreadyTaken = results.some(r => r.name === name && r.setId === setId);
+  if (alreadyTaken) {
+    alert.innerHTML = '<div class="alert alert-error">คุณได้ทำแบบทดสอบชุดนี้ไปแล้ว กรุณาเลือกชุดอื่น</div>';
+    return;
+  }
+
+  const sets = DB.get('quizSets', []);
+  const set = sets.find(s => s.id === setId);
+  if (!set) return;
+
+  alert.innerHTML = '';
+
+  // --- สุ่มคำถามจาก pool ใหม่ทุกครั้ง (ป้องกันลอกกัน) ---
+  const pool = QUESTION_BANK[set.category] || QUESTION_BANK.mixed;
+  const count = set.count || (set.questions && set.questions.length) || 10;
+
+  // สุ่มลำดับตัวเลือก A-D ใหม่สำหรับแต่ละข้อ
+  function shuffleOptions(q) {
+    const perm = [0,1,2,3].sort(() => Math.random() - .5);
+    return {
+      ...q,
+      options: perm.map(i => q.options[i]),
+      answer: perm.indexOf(q.answer),
+    };
+  }
+
+  const personalQ = [...pool]
+    .sort(() => Math.random() - .5)   // สุ่มเลือกข้อ
+    .slice(0, Math.min(count, pool.length))
+    .map(shuffleOptions);              // สุ่มลำดับตัวเลือก
+
+  currentQuiz = {
+    name, role, setId,
+    setTitle: set.title,
+    questions: personalQ,
+    timeLimit: set.timeLimit,
+    passScore: set.passScore,
+    currentIdx: 0,
+    answers: [],
+    startTime: Date.now(),
+  };
+
+  document.getElementById('quiz-taker-info').textContent = `👤 ${name} | ${role}`;
+  document.getElementById('quiz-login-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = '';
+  document.getElementById('result-screen').style.display = 'none';
+
+  timerSeconds = currentQuiz.timeLimit * 60; // นับถอยหลัง
+  if (quizTimer) clearInterval(quizTimer);
+
+  function updateTimerDisplay() {
+    const el = document.getElementById('quiz-timer');
+    if (!el) return;
+    const m = Math.floor(timerSeconds / 60).toString().padStart(2,'0');
+    const s = (timerSeconds % 60).toString().padStart(2,'0');
+    const totalSec = currentQuiz.timeLimit * 60;
+    const pct = timerSeconds / totalSec;
+    if (pct <= 0.2) {
+      el.style.color = 'var(--danger)';
+      el.style.fontWeight = '700';
+      el.style.fontSize = '1rem';
+      el.textContent = `⏰ ${m}:${s} เหลืออยู่`;
+    } else if (pct <= 0.4) {
+      el.style.color = 'var(--warning)';
+      el.style.fontWeight = '600';
+      el.style.fontSize = '.95rem';
+      el.textContent = `⏱️ ${m}:${s} เหลืออยู่`;
+    } else {
+      el.style.color = '';
+      el.style.fontWeight = '';
+      el.style.fontSize = '';
+      el.textContent = `⏱️ ${m}:${s} เหลืออยู่`;
+    }
+  }
+
+  updateTimerDisplay();
+  quizTimer = setInterval(() => {
+    timerSeconds--;
+    updateTimerDisplay();
+    if (timerSeconds <= 0) {
+      clearInterval(quizTimer);
+      finishQuiz();
+    }
+  }, 1000);
+
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = currentQuiz.questions[currentQuiz.currentIdx];
+  const total = currentQuiz.questions.length;
+  const idx = currentQuiz.currentIdx;
+  const pct = (idx / total) * 100;
+
+  document.getElementById('quiz-progress').style.width = pct + '%';
+  document.getElementById('q-num').textContent = `ข้อที่ ${idx + 1} จาก ${total}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-explanation').style.display = 'none';
+
+  // Reset pending selection for this question
+  currentQuiz.pendingSelection = null;
+
+  const isLast = idx >= total - 1;
+  const btnNext = document.getElementById('btn-next');
+  const btnFinish = document.getElementById('btn-finish');
+  btnNext.style.display = isLast ? 'none' : '';
+  btnNext.disabled = true;
+  btnNext.style.opacity = '0.45';
+  btnFinish.style.display = isLast ? '' : 'none';
+  btnFinish.disabled = true;
+  btnFinish.style.opacity = '0.45';
+
+  const opts = document.getElementById('q-options');
+  const letters = ['A','B','C','D'];
+  opts.innerHTML = q.options.map((opt, i) =>
+    `<div class="option" onclick="selectOption(${i})" id="opt-${i}">
+      <div class="option-letter">${letters[i]}</div>
+      <div>${opt}</div>
+    </div>`
+  ).join('');
+}
+
+function selectOption(idx) {
+  // Remove previous selection highlight
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  // Highlight chosen option
+  document.getElementById('opt-' + idx).classList.add('selected');
+  // Store pending selection (not locked yet)
+  currentQuiz.pendingSelection = idx;
+  // Enable next/finish button
+  const isLast = currentQuiz.currentIdx >= currentQuiz.questions.length - 1;
+  const btn = document.getElementById(isLast ? 'btn-finish' : 'btn-next');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+function nextQuestion() {
+  // Lock in the pending selection
+  const q = currentQuiz.questions[currentQuiz.currentIdx];
+  const selected = currentQuiz.pendingSelection;
+  currentQuiz.answers.push({
+    questionId: q.id,
+    selected: selected === null ? -1 : selected,
+    correct: selected !== null && selected === q.answer,
+  });
+  currentQuiz.currentIdx++;
+  renderQuestion();
+}
+
+function finishQuiz() {
+  if (quizTimer) clearInterval(quizTimer);
+
+  // Lock in the last question's pending selection (if not already saved)
+  if (currentQuiz.answers.length === currentQuiz.currentIdx) {
+    const q = currentQuiz.questions[currentQuiz.currentIdx];
+    const selected = currentQuiz.pendingSelection;
+    currentQuiz.answers.push({
+      questionId: q.id,
+      selected: selected === null || selected === undefined ? -1 : selected,
+      correct: selected !== null && selected !== undefined && selected === q.answer,
+    });
+  }
+
+  // Handle unanswered questions (e.g. timer ran out)
+  while (currentQuiz.answers.length < currentQuiz.questions.length) {
+    const q = currentQuiz.questions[currentQuiz.answers.length];
+    currentQuiz.answers.push({ questionId: q.id, selected: -1, correct: false });
+  }
+
+  const correct = currentQuiz.answers.filter(a => a.correct).length;
+  const total = currentQuiz.questions.length;
+  const score = Math.round((correct / total) * 100);
+  const passed = score >= currentQuiz.passScore;
+  const duration = Math.round((Date.now() - currentQuiz.startTime) / 1000);
+
+  // Save result
+  const result = {
+    id: 'r_' + Date.now(),
+    name: currentQuiz.name,
+    role: currentQuiz.role,
+    setId: currentQuiz.setId,
+    setTitle: currentQuiz.setTitle,
+    correct, total, score, passed,
+    duration,
+    date: new Date().toISOString(),
+    answers: currentQuiz.answers.map((a, i) => {
+      const q = currentQuiz.questions[i];
+      return {
+        questionId: a.questionId,
+        text: q ? q.text : '',
+        options: q ? q.options : [],
+        selected: a.selected,
+        correctAnswer: q ? q.answer : -1,
+        correct: a.correct,
+        explanation: q ? (q.explanation || '') : '',
+      };
+    }),
+  };
+
+  const results = DB.get('quizResults', []);
+  results.push(result);
+  DB.set('quizResults', results);
+  registerPracticalUser(currentQuiz.name, currentQuiz.role);
+
+  // Sync to Google Sheets if configured
+  syncToSheets(result);
+
+  // Render result
+  const circle = document.getElementById('result-circle');
+  circle.className = 'result-circle ' + (passed ? 'result-pass' : 'result-fail');
+  circle.innerHTML = `${score}%<div style="font-size:.8rem;font-weight:400">${passed?'ผ่าน':'ไม่ผ่าน'}</div>`;
+
+  document.getElementById('result-title').textContent = passed ? '🎉 ยินดีด้วย! คุณผ่านการทดสอบ' : '😅 ยังไม่ผ่านครั้งนี้';
+  document.getElementById('result-sub').textContent = `${currentQuiz.name} | ${currentQuiz.setTitle}`;
+
+  const mins = Math.floor(duration / 60);
+  const secs = duration % 60;
+  document.getElementById('result-breakdown').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
+      <div><div style="font-size:1.8rem;font-weight:800;color:var(--success)">${correct}</div><div style="font-size:.8rem;color:var(--muted)">ตอบถูก</div></div>
+      <div><div style="font-size:1.8rem;font-weight:800;color:var(--danger)">${total-correct}</div><div style="font-size:.8rem;color:var(--muted)">ตอบผิด</div></div>
+      <div><div style="font-size:1.8rem;font-weight:800;color:var(--primary)">${mins}:${secs.toString().padStart(2,'0')}</div><div style="font-size:.8rem;color:var(--muted)">เวลาที่ใช้</div></div>
+    </div>`;
+
+  // Render answer review
+  const letters = ['A','B','C','D'];
+  const reviewHTML = currentQuiz.answers.map((a, i) => {
+    const q = currentQuiz.questions[i];
+    if (!q) return '';
+    const isCorrect = a.correct;
+    const skipped = a.selected === -1 || a.selected === undefined;
+    const borderColor = isCorrect ? 'rgba(34,197,94,.35)' : 'rgba(239,68,68,.35)';
+    const bgColor = isCorrect ? 'rgba(34,197,94,.05)' : 'rgba(239,68,68,.05)';
+
+    const optionsHTML = q.options.map((opt, oi) => {
+      let bg = 'transparent'; let fw = '400'; let suffix = '';
+      if (oi === q.answer) { bg = 'rgba(34,197,94,.18)'; fw = '600'; suffix = ' <span style="color:var(--success);font-size:.78rem">← เฉลย</span>'; }
+      if (!skipped && oi === a.selected && oi !== q.answer) { bg = 'rgba(239,68,68,.18)'; fw = '600'; suffix = ' <span style="color:var(--danger);font-size:.78rem">← คำตอบของคุณ</span>'; }
+      if (!skipped && oi === a.selected && oi === q.answer) { suffix = ' <span style="color:var(--success);font-size:.78rem">← คำตอบของคุณ (ถูก ✓)</span>'; }
+      return `<div style="padding:5px 10px;border-radius:6px;background:${bg};font-weight:${fw};margin:3px 0;font-size:.84rem"><strong>${letters[oi]}.</strong> ${opt}${suffix}</div>`;
+    }).join('');
+
+    const skipNote = skipped ? `<div style="font-size:.8rem;color:var(--muted);margin-top:4px">⚠️ ข้ามข้อนี้</div>` : '';
+    const expNote = q.explanation ? `<div style="margin-top:8px;padding:8px 10px;background:rgba(99,102,241,.08);border-left:3px solid var(--accent);border-radius:4px;font-size:.82rem;color:var(--text-secondary)">💡 ${q.explanation}</div>` : '';
+
+    return `<div style="border:1px solid ${borderColor};background:${bgColor};border-radius:10px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
+        <span>${isCorrect ? '✅' : '❌'}</span>
+        <div style="font-weight:600;font-size:.88rem;line-height:1.5">${i+1}. ${q.text}</div>
+      </div>
+      <div style="padding-left:4px">${optionsHTML}</div>
+      ${skipNote}${expNote}
+    </div>`;
+  }).join('');
+  document.getElementById('result-review').innerHTML = reviewHTML;
+
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = '';
+  renderPersonalAnalysis(currentQuiz);
+}
+
+function renderPersonalAnalysis(quiz) {
+  const el = document.getElementById('result-analysis');
+  if (!el || !quiz.answers || !quiz.answers.length) return;
+
+  const catLabels = {
+    pse_ose_roles: 'บทบาท PSE & OSE',
+    vrportal: 'VRPortal & ระบบ',
+    activity_link: 'Activity Link & Follow Up Plans',
+    order_link: 'Order Link & สถานะ',
+    mini_cdp: 'Mini CDP & การจัดสรรลูกค้า',
+  };
+  const catTips = {
+    pse_ose_roles: 'ทบทวนโครงสร้างทีมและบทบาทของ PSE / OSE / Sales Admin ให้ชัดเจน',
+    vrportal: 'ฝึกใช้งาน VRPortal จริง และทำความเข้าใจ Partner / บัญชีและการเงิน',
+    activity_link: 'ทบทวนขั้นตอน ATL → Follow Up Plans → Activity Forms Set A/B/C',
+    order_link: 'ทบทวนสถานะ Order และการตรวจสอบเอกสารผ่าน Order Link',
+    mini_cdp: 'ทบทวน 4 ขั้นตอน Mini CDP และการ Running/จัด Ranking ARCode',
+  };
+
+  // Map question id prefix to category
+  function getCat(qid) {
+    if (!qid) return null;
+    if (qid.startsWith('r')) return 'pse_ose_roles';
+    if (qid.startsWith('v')) return 'vrportal';
+    if (qid.startsWith('a')) return 'activity_link';
+    if (qid.startsWith('o')) return 'order_link';
+    if (qid.startsWith('m')) return 'mini_cdp';
+    return null;
+  }
+
+  // Tally per category
+  const stats = {};
+  quiz.answers.forEach(a => {
+    const qid = a.questionId || a.id;
+    const cat = getCat(qid);
+    if (!cat) return;
+    if (!stats[cat]) stats[cat] = { correct: 0, total: 0 };
+    stats[cat].total++;
+    if (a.correct) stats[cat].correct++;
+  });
+
+  const catArr = Object.entries(stats).map(([cat, s]) => ({
+    cat, label: catLabels[cat] || cat,
+    pct: Math.round(s.correct / s.total * 100),
+    correct: s.correct, total: s.total,
+    tip: catTips[cat] || '',
+  })).sort((a, b) => b.pct - a.pct);
+
+  if (!catArr.length) return;
+
+  const strengths = catArr.filter(c => c.pct >= 70);
+  const weaknesses = catArr.filter(c => c.pct < 70);
+
+  const barHTML = catArr.map(c => {
+    const color = c.pct >= 80 ? 'var(--success)' : c.pct >= 60 ? 'var(--warning)' : 'var(--danger)';
+    return `
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:3px">
+          <span>${c.label}</span>
+          <span style="font-weight:700;color:${color}">${c.correct}/${c.total} (${c.pct}%)</span>
+        </div>
+        <div style="height:7px;background:var(--border);border-radius:999px;overflow:hidden">
+          <div style="width:${c.pct}%;height:100%;background:${color};border-radius:999px;transition:width .6s"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const strengthHTML = strengths.length
+    ? strengths.map(c => `<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px"><span style="color:var(--success)">✅</span><span><strong>${c.label}</strong> — ทำได้ดีมาก (${c.pct}%)</span></div>`).join('')
+    : '<div style="color:var(--muted);font-size:.85rem">— ยังไม่มีหมวดที่ผ่านเกณฑ์</div>';
+
+  const weakHTML = weaknesses.length
+    ? weaknesses.map(c => `
+        <div style="border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:rgba(239,68,68,.04)">
+          <div style="font-weight:600;color:var(--danger);margin-bottom:3px">⚠️ ${c.label} (${c.pct}%)</div>
+          <div style="font-size:.83rem;color:var(--muted)">💡 ${c.tip}</div>
+        </div>`).join('')
+    : '<div style="color:var(--success);font-size:.85rem">✅ ทำได้ดีทุกหมวด!</div>';
+
+  el.innerHTML = `
+    <div style="border:1.5px solid var(--border);border-radius:12px;padding:20px;background:var(--card);margin-bottom:16px">
+      <div style="font-weight:700;color:var(--primary);font-size:1rem;margin-bottom:14px">🔍 วิเคราะห์ผลรายหมวด</div>
+      ${barHTML}
+      <div style="margin-top:16px">
+        <div style="font-weight:600;margin-bottom:8px">💪 จุดแข็ง</div>
+        ${strengthHTML}
+      </div>
+      ${weaknesses.length ? `
+      <div style="margin-top:14px">
+        <div style="font-weight:600;margin-bottom:8px">📌 หมวดที่ควรพัฒนาเพิ่มเติม</div>
+        ${weakHTML}
+      </div>` : ''}
+    </div>`;
+}
+
+// ========== ADMIN ==========
+function adminLogin() {
+  const pass = document.getElementById('admin-pass').value;
+  const correct = DB.get('adminPass', 'admin1234');
+  if (pass === correct) {
+    DB.set('adminLoggedIn', true);
+    document.getElementById('admin-login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = '';
+    renderAdminPanel();
+    document.getElementById('nav-dashboard').style.display = '';
+  } else {
+    document.getElementById('admin-alert').innerHTML = '<div class="alert alert-error">รหัสผ่านไม่ถูกต้อง</div>';
+  }
+}
+
+function adminLogout() {
+  DB.set('adminLoggedIn', false);
+  document.getElementById('admin-login-screen').style.display = '';
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('admin-pass').value = '';
+  document.getElementById('nav-dashboard').style.display = 'none';
+}
+
+function renderAdminPanel() {
+  if (!DB.get('adminLoggedIn', false)) return;
+  document.getElementById('admin-login-screen').style.display = 'none';
+  document.getElementById('admin-panel').style.display = '';
+
+  const sets = DB.get('quizSets', []);
+  const list = document.getElementById('admin-quiz-list');
+  const catLabels = {
+    pse_ose_roles:'PSE & OSE Roles', vrportal:'VRPortal',
+    activity_link:'Activity Link', order_link:'Order Link',
+    mini_cdp:'Mini CDP', mixed:'Mixed (รวมทุกหัวข้อ)'
+  };
+
+  renderAdminPractical();
+  renderBankEditor();
+  list.innerHTML = sets.length ? sets.map(s => {
+    const pool = QUESTION_BANK[s.category] || QUESTION_BANK.mixed;
+    const count = s.count || (s.questions && s.questions.length) || 10;
+    const isOn = s.status === 'published';
+    return `
+    <div class="quiz-set-item">
+      <div class="quiz-set-header">
+        <div>
+          <div class="quiz-set-title">${s.title}</div>
+          <div class="quiz-set-meta">📚 สุ่ม ${count} จาก ${pool.length} ข้อ &nbsp;|&nbsp; ⏱️ ${s.timeLimit} นาที &nbsp;|&nbsp; ✅ ผ่านที่ ${s.passScore}% &nbsp;|&nbsp; หมวด: ${catLabels[s.category]||s.category}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="badge ${isOn?'badge-published':'badge-rejected'}">${isOn?'🟢 เปิดใช้งาน':'⚫ ปิดอยู่'}</span>
+          <button class="btn btn-outline" style="padding:6px 12px;font-size:.82rem" onclick="openPoolView('${s.category}')">📋 ดูคำถาม (${pool.length})</button>
+          <button class="btn btn-outline" style="padding:6px 12px;font-size:.82rem" onclick="openEditSet('${s.id}')">✏️ แก้ไข</button>
+          <button class="btn btn-${isOn?'warning':'primary'}" style="padding:6px 12px;font-size:.82rem${isOn?';background:var(--warning)':''}" onclick="togglePublish('${s.id}')">${isOn?'⏸️ ปิด':'▶️ เปิด'}</button>
+          <button class="btn btn-outline" style="padding:6px 12px;font-size:.82rem;color:var(--danger);border-color:var(--danger)" onclick="deleteSet('${s.id}')">🗑️ ลบ</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="card" style="text-align:center;color:var(--muted);padding:40px">ยังไม่มีชุดข้อสอบ</div>';
+}
+
+function openPoolView(category) {
+  const catLabels = {
+    pse_ose_roles:'PSE & OSE Roles', vrportal:'VRPortal',
+    activity_link:'Activity Link', order_link:'Order Link',
+    mini_cdp:'Mini CDP', mixed:'Mixed (รวมทุกหัวข้อ)'
+  };
+  const pool = QUESTION_BANK[category] || QUESTION_BANK.mixed;
+  const letters = ['A','B','C','D'];
+  document.getElementById('review-title').textContent = `📋 Pool: ${catLabels[category]||category} — ${pool.length} ข้อ`;
+  document.getElementById('review-revision-history').innerHTML = '';
+  document.getElementById('review-questions-list').innerHTML = `
+    <div class="question-preview">
+      ${pool.map((q, qi) => `
+        <div class="question-preview-item">
+          <div class="q-text">${qi+1}. <span style="color:var(--muted);font-size:.8em">[${q.id}]</span> ${q.text}</div>
+          <div class="q-options">
+            ${q.options.map((opt, oi) =>
+              `<div class="q-option ${oi === q.answer ? 'answer' : ''}">${letters[oi]}. ${opt}${oi === q.answer ? ' ✓' : ''}</div>`
+            ).join('')}
+          </div>
+          ${q.explanation ? `<div style="font-size:.78rem;color:var(--muted);margin-top:4px">💡 ${q.explanation}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>`;
+  document.getElementById('btn-publish').style.display = 'none';
+  const btnRevise = document.getElementById('btn-revise');
+  if (btnRevise) btnRevise.style.display = 'none';
+  const noteEl = document.getElementById('review-note');
+  if (noteEl) noteEl.style.display = 'none';
+  document.getElementById('modal-review').classList.add('open');
+}
+
+function closeReviewModal() {
+  const noteEl = document.getElementById('review-note');
+  if (noteEl) noteEl.style.display = '';
+  const btnRevise = document.getElementById('btn-revise');
+  if (btnRevise) btnRevise.style.display = '';
+  document.getElementById('btn-publish').style.display = '';
+  closeModal('modal-review');
+}
+
+function openEditSet(setId) {
+  const sets = DB.get('quizSets', []);
+  const s = sets.find(x => x.id === setId);
+  if (!s) return;
+  document.getElementById('gen-title').value = s.title;
+  document.getElementById('gen-category').value = s.category;
+  document.getElementById('gen-count').value = s.count || (s.questions && s.questions.length) || 10;
+  document.getElementById('gen-time').value = s.timeLimit;
+  document.getElementById('gen-pass').value = s.passScore;
+  document.getElementById('modal-generate').dataset.editId = setId;
+  document.getElementById('modal-generate').classList.add('open');
+}
+
+function togglePublish(setId) {
+  const sets = DB.get('quizSets', []);
+  const idx = sets.findIndex(s => s.id === setId);
+  if (idx === -1) return;
+  sets[idx].status = sets[idx].status === 'published' ? 'unpublished' : 'published';
+  DB.set('quizSets', sets);
+  renderAdminPanel();
+}
+
+function deleteSet(setId) {
+  if (!confirm('ต้องการลบชุดข้อสอบนี้?')) return;
+  const sets = DB.get('quizSets', []).filter(s => s.id !== setId);
+  DB.set('quizSets', sets);
+  renderAdminPanel();
+}
+
+function openGenerateModal() {
+  document.getElementById('modal-generate').classList.add('open');
+}
+
+function generateQuizSet() {
+  const title = document.getElementById('gen-title').value.trim() || 'Quiz Set ' + new Date().toLocaleDateString('th-TH');
+  const category = document.getElementById('gen-category').value;
+  const count = parseInt(document.getElementById('gen-count').value);
+  const timeLimit = parseInt(document.getElementById('gen-time').value);
+  const passScore = parseInt(document.getElementById('gen-pass').value);
+  const editId = document.getElementById('modal-generate').dataset.editId;
+  const sets = DB.get('quizSets', []);
+
+  if (editId) {
+    const idx = sets.findIndex(s => s.id === editId);
+    if (idx !== -1) {
+      sets[idx] = { ...sets[idx], title, category, count, timeLimit, passScore };
+    }
+    delete document.getElementById('modal-generate').dataset.editId;
+  } else {
+    sets.unshift(createQuizSet(title, category, count, timeLimit, passScore));
+  }
+
+  DB.set('quizSets', sets);
+  closeModal('modal-generate');
+  renderAdminPanel();
+}
+
+// ========== SETTINGS ==========
+function openSettingsModal() {
+  const gasUrl = DB.get('gasUrl', '');
+  document.getElementById('set-gas-url').value = gasUrl;
+  document.getElementById('modal-settings').classList.add('open');
+}
+
+function saveSettings() {
+  const oldPass = document.getElementById('set-old-pass').value;
+  const newPass = document.getElementById('set-new-pass').value;
+  const gasUrl = document.getElementById('set-gas-url').value.trim();
+
+  if (oldPass || newPass) {
+    if (oldPass !== DB.get('adminPass', 'admin1234')) {
+      alert('รหัสผ่านเดิมไม่ถูกต้อง'); return;
+    }
+    if (newPass.length < 6) {
+      alert('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'); return;
+    }
+    DB.set('adminPass', newPass);
+  }
+
+  if (gasUrl) DB.set('gasUrl', gasUrl);
+  closeModal('modal-settings');
+  alert('บันทึกการตั้งค่าเรียบร้อย!');
+}
+
+// ========== BANK EDITOR ==========
+let _editingQId = null;
+let _editingCat = null;
+
+function renderBankEditor() {
+  const el = document.getElementById('admin-bank-editor');
+  if (!el) return;
+  const cat = document.getElementById('edit-bank-cat')?.value || 'pse_ose_roles';
+  _editingCat = cat;
+  const pool = QUESTION_BANK[cat] || [];
+  const customs = DB.get('customQuestions', []);
+  const letters = ['A','B','C','D'];
+
+  el.innerHTML = pool.map((q, qi) => {
+    const override = customs.find(c => c.id === q.id);
+    const display = override ? { ...q, ...override } : q;
+    const isEdited = !!override;
+    return `<div style="border:1.5px solid ${isEdited?'rgba(37,99,168,.4)':'var(--border)'};border-radius:10px;padding:14px 16px;margin-bottom:8px;background:${isEdited?'rgba(37,99,168,.03)':'#fff'}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:3px">[${q.id}]${isEdited?' <span style="color:var(--primary-light);font-weight:600">✎ แก้ไขแล้ว</span>':''}</div>
+          <div style="font-weight:600;font-size:.9rem;margin-bottom:8px">${qi+1}. ${display.text}</div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            ${display.options.map((opt, oi) => `<div style="font-size:.83rem;${oi===display.answer?'color:var(--success);font-weight:600':''}">${letters[oi]}. ${opt}${oi===display.answer?' ✓':''}</div>`).join('')}
+          </div>
+          ${display.explanation ? `<div style="font-size:.78rem;color:var(--muted);margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">💡 ${display.explanation}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <button class="btn btn-outline" style="padding:5px 10px;font-size:.78rem;white-space:nowrap" onclick="openEditQuestion('${q.id}','${cat}')">✏️ แก้ไข</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEditQuestion(qId, cat) {
+  const pool = QUESTION_BANK[cat] || [];
+  const base = pool.find(q => q.id === qId);
+  if (!base) return;
+  const customs = DB.get('customQuestions', []);
+  const override = customs.find(c => c.id === qId);
+  const q = override ? { ...base, ...override } : base;
+
+  _editingQId = qId;
+  _editingCat = cat;
+
+  document.getElementById('edit-q-id').textContent = `[${qId}]`;
+  document.getElementById('edit-q-text').value = q.text;
+  document.getElementById('edit-q-explanation').value = q.explanation || '';
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('edit-q-options-wrap').innerHTML = q.options.map((opt, i) => `
+    <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:6px;margin:0;flex-shrink:0;cursor:pointer">
+        <input type="radio" name="edit-correct" value="${i}" ${q.answer===i?'checked':''} style="width:16px;height:16px;accent-color:var(--success)">
+        <span style="font-weight:700;color:var(--muted)">${letters[i]}.</span>
+      </label>
+      <input type="text" id="edit-opt-${i}" value="${opt}" placeholder="ตัวเลือก ${letters[i]}" style="margin:0">
+    </div>`).join('');
+
+  document.getElementById('edit-q-reset-btn').style.display = override ? '' : 'none';
+  document.getElementById('modal-edit-question').classList.add('open');
+}
+
+function saveEditedQuestion() {
+  if (!_editingQId || !_editingCat) return;
+  const text = document.getElementById('edit-q-text').value.trim();
+  if (!text) { alert('กรุณากรอกข้อคำถาม'); return; }
+
+  const options = [0,1,2,3].map(i => document.getElementById('edit-opt-'+i).value.trim());
+  if (options.some(o => !o)) { alert('กรุณากรอกตัวเลือกให้ครบ 4 ข้อ'); return; }
+
+  const answerEl = document.querySelector('input[name="edit-correct"]:checked');
+  if (!answerEl) { alert('กรุณาเลือกตัวเลือกที่ถูกต้อง'); return; }
+  const answer = parseInt(answerEl.value);
+  const explanation = document.getElementById('edit-q-explanation').value.trim();
+
+  const customs = DB.get('customQuestions', []);
+  const idx = customs.findIndex(c => c.id === _editingQId);
+  const updated = { id: _editingQId, category: _editingCat, text, options, answer, explanation, _edited: true };
+
+  if (idx >= 0) customs[idx] = updated;
+  else customs.push(updated);
+  DB.set('customQuestions', customs);
+
+  // Update live QUESTION_BANK
+  const pool = QUESTION_BANK[_editingCat];
+  if (pool) {
+    const qi = pool.findIndex(q => q.id === _editingQId);
+    if (qi >= 0) pool[qi] = { ...pool[qi], text, options, answer, explanation };
+  }
+
+  closeModal('modal-edit-question');
+  renderBankEditor();
+}
+
+function resetQuestion() {
+  if (!_editingQId) return;
+  if (!confirm('คืนค่าเดิมจากระบบ? การแก้ไขทั้งหมดของข้อนี้จะหายไป')) return;
+  const customs = DB.get('customQuestions', []).filter(c => c.id !== _editingQId);
+  DB.set('customQuestions', customs);
+
+  // Restore from original bank
+  mergeCustomQuestions();
+
+  closeModal('modal-edit-question');
+  renderBankEditor();
+}
+
+// ========== PRACTICAL TASKS ==========
+
+const PRACTICAL_DEADLINE_DAYS = 15;
+
+function getPracticalDeadline(createdAt) {
+  const d = new Date(createdAt);
+  d.setDate(d.getDate() + PRACTICAL_DEADLINE_DAYS);
+  return d;
+}
+
+function getPracticalDeadlineStatus(createdAt) {
+  const now = new Date();
+  const deadline = getPracticalDeadline(createdAt);
+  const diffMs = deadline - now;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const deadlineStr = deadline.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+  if (diffDays < 0) return { expired: true, daysLeft: 0, label: `⛔ หมดเวลา (${deadlineStr})`, color: 'var(--danger)', deadlineStr };
+  if (diffDays === 0) return { expired: false, daysLeft: 0, label: `⚠️ วันสุดท้ายนี้! (${deadlineStr})`, color: 'var(--danger)', deadlineStr };
+  if (diffDays <= 3) return { expired: false, daysLeft: diffDays, label: `⚠️ เหลือ ${diffDays} วัน (${deadlineStr})`, color: 'var(--warning)', deadlineStr };
+  return { expired: false, daysLeft: diffDays, label: `⏱ เหลือ ${diffDays} วัน (ครบ ${deadlineStr})`, color: 'var(--muted)', deadlineStr };
+}
+
+const PRACTICAL_TASKS = {
+  PSE: [
+    { key: 'atl', label: 'สร้าง ATL (Activity Link) บน VRPortal' },
+    { key: 'fl_potential', label: 'สร้าง FL : Potential (Follow Up Plans) บน VRPortal' },
+  ],
+  OSE: [
+    { key: 'atl_assignee', label: 'มี ATL ที่ OSE เป็น Assignee บน VRPortal' },
+    { key: 'odl_assignee', label: 'มี ODL (Order Link) ที่ OSE เป็น Assignee บน VRPortal' },
+  ],
+};
+
+function getPracticalTaskDefs(role) {
+  if (role && role.startsWith('PSE')) return PRACTICAL_TASKS.PSE;
+  if (role && role.startsWith('OSE')) return PRACTICAL_TASKS.OSE;
+  return [];
+}
+
+function registerPracticalUser(name, role) {
+  const list = DB.get('practicalTasks', []);
+  if (list.find(p => p.name === name)) return; // already registered
+  const defs = getPracticalTaskDefs(role);
+  const tasks = {};
+  defs.forEach(d => { tasks[d.key] = { done: false, doneAt: '', doneBy: '' }; });
+  list.push({ name, role, tasks, createdAt: new Date().toISOString() });
+  DB.set('practicalTasks', list);
+  if (DB.get('adminLoggedIn', false)) renderAdminPractical();
+}
+
+function renderPracticalPage() {
+  document.getElementById('practical-login-screen').style.display = '';
+  document.getElementById('practical-user-screen').style.display = 'none';
+}
+
+function lookupPractical() {
+  const name = document.getElementById('prac-name-input').value.trim();
+  const alert = document.getElementById('prac-alert');
+  if (!name) { alert.innerHTML = '<div class="alert alert-error">กรุณากรอกชื่อ</div>'; return; }
+  const list = DB.get('practicalTasks', []);
+  const person = list.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (!person) {
+    alert.innerHTML = '<div class="alert alert-error">ไม่พบข้อมูล กรุณาทำแบบทดสอบก่อน</div>';
+    return;
+  }
+  alert.innerHTML = '';
+  document.getElementById('practical-login-screen').style.display = 'none';
+  document.getElementById('practical-user-screen').style.display = '';
+  renderUserPractical(person);
+}
+
+function renderUserPractical(person) {
+  const defs = getPracticalTaskDefs(person.role);
+  const allDone = defs.every(d => person.tasks[d.key] && person.tasks[d.key].done);
+  const ds = person.createdAt ? getPracticalDeadlineStatus(person.createdAt) : null;
+  const body = document.getElementById('practical-user-body');
+  body.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div style="font-weight:700;font-size:1.05rem">${person.name}</div>
+          <div style="font-size:.83rem;color:var(--muted)">${person.role}</div>
+        </div>
+        <span class="badge ${allDone ? 'badge-approved' : 'badge-draft'}" style="font-size:.85rem">${allDone ? '✅ ครบทุกงาน' : '⏳ รอดำเนินการ'}</span>
+      </div>
+      ${ds ? `<div style="font-size:.82rem;color:${ds.color};font-weight:600;margin-bottom:10px;padding:8px 12px;background:${ds.expired?'rgba(239,68,68,.07)':ds.daysLeft<=3?'rgba(245,158,11,.07)':'var(--bg)'};border-radius:8px;border:1px solid ${ds.expired?'rgba(239,68,68,.2)':ds.daysLeft<=3?'rgba(245,158,11,.2)':'var(--border)'}">📅 กำหนด ${PRACTICAL_DEADLINE_DAYS} วัน: ${ds.label}</div>` : ''}
+      <div style="font-size:.85rem;color:var(--muted);margin-bottom:14px;padding:10px;background:var(--bg);border-radius:8px">
+        💡 ทำงานปฏิบัติบน VRPortal จริง — ระบบจะเช็คให้อัตโนมัติทุกวัน
+      </div>
+      ${defs.map(d => {
+        const t = person.tasks[d.key] || {};
+        const done = t.done;
+        const doneDate = done ? new Date(t.doneAt).toLocaleDateString('th-TH', {day:'numeric',month:'short',year:'2-digit'}) : '';
+        const autoTag = done && t.autoChecked ? ' <span style="font-size:.7rem;background:#dbeafe;color:#1e40af;border-radius:4px;padding:1px 5px">🤖 Auto</span>' : '';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid ${done?'rgba(34,197,94,.4)':'var(--border)'};border-radius:10px;margin-bottom:8px;background:${done?'rgba(34,197,94,.05)':'#fff'}">
+          <div style="font-size:1.4rem">${done ? '✅' : '⬜'}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:.9rem">${d.label}</div>
+            ${done ? `<div style="font-size:.75rem;color:var(--success);margin-top:2px">ยืนยันแล้ว ${doneDate}${autoTag}</div>` : '<div style="font-size:.75rem;color:var(--muted);margin-top:2px">รอการยืนยันอัตโนมัติจาก VRPortal</div>'}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderAdminPractical() {
+  renderAutoCheckBanner();
+  const el = document.getElementById('admin-practical-list');
+  if (!el) return;
+  const list = DB.get('practicalTasks', []);
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;border:1.5px dashed var(--border);border-radius:10px">ยังไม่มีผู้ทำแบบทดสอบ (จะปรากฏอัตโนมัติเมื่อ User ทำ Quiz ครบ)</div>';
+    return;
+  }
+  el.innerHTML = list.map(person => {
+    const defs = getPracticalTaskDefs(person.role);
+    const doneCount = defs.filter(d => person.tasks[d.key] && person.tasks[d.key].done).length;
+    const allDone = doneCount === defs.length;
+    const ds = person.createdAt ? getPracticalDeadlineStatus(person.createdAt) : null;
+    const lastAutoCheck = defs.flatMap(d => person.tasks[d.key]?.autoCheckDate ? [person.tasks[d.key].autoCheckDate] : []).sort().pop();
+    const lastAutoCheckStr = lastAutoCheck ? new Date(lastAutoCheck).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : null;
+    return `<div style="border:1.5px solid ${allDone?'rgba(34,197,94,.4)':ds?.expired?'rgba(239,68,68,.35)':'var(--border)'};border-radius:10px;padding:16px;margin-bottom:10px;background:${allDone?'rgba(34,197,94,.03)':ds?.expired?'rgba(239,68,68,.03)':'#fff'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="font-weight:700">${person.name}</span>
+          <span style="font-size:.8rem;color:var(--muted);margin-left:8px">${person.role}</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${ds ? `<span style="font-size:.75rem;color:${ds.color};font-weight:600">${ds.label}</span>` : ''}
+          <span class="badge ${allDone?'badge-approved':ds?.expired?'badge-rejected':'badge-draft'}">${doneCount}/${defs.length} งาน${allDone?' ✅':ds?.expired?' ⛔':''}</span>
+        </div>
+      </div>
+      ${lastAutoCheckStr ? `<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">🤖 ตรวจอัตโนมัติล่าสุด: ${lastAutoCheckStr}</div>` : ''}
+      ${defs.map(d => {
+        const t = person.tasks[d.key] || {};
+        const done = t.done;
+        const doneDate = done ? new Date(t.doneAt).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '';
+        const autoTag = done && t.autoChecked ? '<span style="font-size:.7rem;background:#dbeafe;color:#1e40af;border-radius:4px;padding:1px 5px;margin-left:4px">🤖</span>' : '';
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;margin:0">
+            <input type="checkbox" ${done?'checked':''} onchange="togglePracticalTask('${person.name}','${d.key}',this.checked)" style="width:18px;height:18px;cursor:pointer;accent-color:var(--success)">
+            <span style="font-size:.88rem;${done?'color:var(--success);font-weight:600;text-decoration:line-through':''}">${d.label}${autoTag}</span>
+          </label>
+          ${done ? `<span style="font-size:.75rem;color:var(--muted);white-space:nowrap">✓ ${doneDate}</span>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function togglePracticalTask(name, key, checked) {
+  const list = DB.get('practicalTasks', []);
+  const person = list.find(p => p.name === name);
+  if (!person) return;
+  person.tasks[key] = {
+    done: checked,
+    doneAt: checked ? new Date().toISOString() : '',
+    doneBy: 'admin',
+    autoChecked: false,
+  };
+  DB.set('practicalTasks', list);
+  renderAdminPractical();
+  renderDashboardPractical();
+}
+
+// ========== AUTO-CHECK TOGGLE ==========
+function getAutoCheckEnabled() {
+  return DB.get('autoCheckEnabled', true);
+}
+
+function toggleAutoCheck() {
+  const current = getAutoCheckEnabled();
+  DB.set('autoCheckEnabled', !current);
+  renderAutoCheckBanner();
+}
+
+function renderAutoCheckBanner() {
+  const el = document.getElementById('auto-check-banner');
+  if (!el) return;
+  const enabled = getAutoCheckEnabled();
+  const lastRun = DB.get('autoCheckLastRun', null);
+  const lastRunStr = lastRun
+    ? new Date(lastRun).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' })
+    : 'ยังไม่เคยรัน';
+  el.style.background = enabled ? 'rgba(34,197,94,.07)' : 'rgba(100,116,139,.07)';
+  el.style.border = `1px solid ${enabled ? 'rgba(34,197,94,.25)' : 'rgba(100,116,139,.2)'}`;
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;flex:1">
+      <span style="font-size:1.3rem">${enabled ? '🤖' : '💤'}</span>
+      <div>
+        <div style="font-weight:600;font-size:.9rem;color:${enabled ? 'var(--success)' : 'var(--muted)'}">
+          ตรวจอัตโนมัติรายวัน: <strong>${enabled ? 'เปิดอยู่' : 'ปิดอยู่'}</strong>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">
+          ตรวจล่าสุด: ${lastRunStr}${enabled ? ' · ทุกวัน 09:00 น.' : ''}
+        </div>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;flex-shrink:0">
+      <span style="font-size:.85rem;color:var(--muted)">${enabled ? 'ปิดระบบ' : 'เปิดระบบ'}</span>
+      <div onclick="toggleAutoCheck()" style="
+        position:relative;width:44px;height:24px;border-radius:999px;cursor:pointer;
+        background:${enabled ? 'var(--success)' : '#cbd5e1'};
+        transition:background .2s;flex-shrink:0
+      ">
+        <div style="
+          position:absolute;top:3px;
+          left:${enabled ? '22px' : '3px'};
+          width:18px;height:18px;border-radius:50%;background:#fff;
+          box-shadow:0 1px 4px rgba(0,0,0,.2);
+          transition:left .2s
+        "></div>
+      </div>
+    </label>`;
+}
+
+// Called by the automated daily Claude check
+function updatePracticalTaskAuto(name, key, checked, doneAt, source) {
+  const list = DB.get('practicalTasks', []);
+  const person = list.find(p => p.name === name);
+  if (!person) return false;
+  // Don't overwrite a manually-verified task
+  if (person.tasks[key] && person.tasks[key].done && !person.tasks[key].autoChecked) return false;
+  person.tasks[key] = {
+    done: !!checked,
+    doneAt: doneAt || (checked ? new Date().toISOString() : ''),
+    doneBy: source || 'claude-auto',
+    autoChecked: true,
+    autoCheckDate: new Date().toISOString(),
+  };
+  DB.set('practicalTasks', list);
+  DB.set('autoCheckLastRun', new Date().toISOString());
+  renderAdminPractical();
+  renderDashboardPractical();
+  return true;
+}
+
+// ========== DASHBOARD ==========
+function renderDashboard() {
+  const roleFilter = document.getElementById('dash-filter-role')?.value || '';
+  let results = DB.get('quizResults', []);
+  if (roleFilter) results = results.filter(r => r.role === roleFilter);
+
+  // Stats
+  const total = results.length;
+  const passed = results.filter(r => r.passed).length;
+  const avg = total ? Math.round(results.reduce((s, r) => s + r.score, 0) / total) : 0;
+  const names = [...new Set(results.map(r => r.name))].length;
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">ครั้งทดสอบทั้งหมด</div></div>
+    <div class="stat-card"><div class="stat-value">${names}</div><div class="stat-label">จำนวนผู้ทดสอบ</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--success)">${passed}</div><div class="stat-label">ผ่าน</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--danger)">${total-passed}</div><div class="stat-label">ไม่ผ่าน</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--accent)">${avg}%</div><div class="stat-label">คะแนนเฉลี่ย</div></div>
+    <div class="stat-card"><div class="stat-value">${total ? Math.round((passed/total)*100) : 0}%</div><div class="stat-label">อัตราผ่าน</div></div>
+  `;
+
+  // Table
+  const tbody = document.getElementById('dash-tbody');
+  if (!results.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">ยังไม่มีผลการทดสอบ</td></tr>';
+  } else {
+    const sorted = [...results].sort((a, b) => new Date(b.date) - new Date(a.date));
+    tbody.innerHTML = sorted.map((r, i) => {
+      const color = r.score >= 80 ? 'var(--success)' : r.score >= 60 ? 'var(--warning)' : 'var(--danger)';
+      const date = new Date(r.date).toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'2-digit' });
+      const hasDetail = r.answers && r.answers.length > 0;
+      return `<tr>
+        <td>${i+1}</td>
+        <td><strong>${r.name}</strong></td>
+        <td>${r.role || '-'}</td>
+        <td style="font-size:.82rem">${r.setTitle}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:700;color:${color}">${r.score}%</span>
+            <div class="score-bar" style="width:60px"><div class="score-fill" style="width:${r.score}%;background:${color}"></div></div>
+          </div>
+          <div style="font-size:.78rem;color:var(--muted)">${r.correct}/${r.total} ข้อ</div>
+        </td>
+        <td><span class="badge ${r.passed ? 'badge-approved' : 'badge-rejected'}">${r.passed ? '✅ ผ่าน' : '❌ ไม่ผ่าน'}</span></td>
+        <td style="font-size:.82rem;color:var(--muted)">${date}</td>
+        <td>${hasDetail ? `<button class="btn btn-outline" style="font-size:.75rem;padding:4px 10px" onclick="showResultDetail('${r.id}')">🔍 รายละเอียด</button>` : '<span style="font-size:.75rem;color:var(--muted)">-</span>'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Per-person stats
+  const perPerson = {};
+  results.forEach(r => {
+    if (!perPerson[r.name]) perPerson[r.name] = { name: r.name, role: r.role, scores: [], attempts: 0 };
+    perPerson[r.name].scores.push(r.score);
+    perPerson[r.name].attempts++;
+  });
+
+  const perPersonArr = Object.values(perPerson).sort((a, b) => {
+    const avgA = a.scores.reduce((s,v) => s+v, 0) / a.scores.length;
+    const avgB = b.scores.reduce((s,v) => s+v, 0) / b.scores.length;
+    return avgB - avgA;
+  });
+
+  if (!perPersonArr.length) {
+    document.getElementById('dash-per-person').innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูล</div>';
+  } else {
+    document.getElementById('dash-per-person').innerHTML = `
+      <table class="leaderboard">
+        <thead><tr><th>ชื่อ</th><th>ทีม</th><th>จำนวนครั้ง</th><th>คะแนนเฉลี่ย</th><th>ผลล่าสุด</th></tr></thead>
+        <tbody>
+          ${perPersonArr.map(p => {
+            const avg = Math.round(p.scores.reduce((s,v) => s+v, 0) / p.scores.length);
+            const latest = p.scores[p.scores.length - 1];
+            const color = avg >= 80 ? 'var(--success)' : avg >= 60 ? 'var(--warning)' : 'var(--danger)';
+            return `<tr>
+              <td><strong>${p.name}</strong></td>
+              <td>${p.role || '-'}</td>
+              <td>${p.attempts} ครั้ง</td>
+              <td><span style="font-weight:700;color:${color}">${avg}%</span></td>
+              <td><span style="font-weight:600">${latest}%</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+
+    // Per-person category analysis
+    const allResults = DB.get('quizResults', []);
+    const catLabelsA = {
+      pse_ose_roles: 'บทบาท PSE/OSE', vrportal: 'VRPortal',
+      activity_link: 'Activity Link', order_link: 'Order Link', mini_cdp: 'Mini CDP',
+    };
+    function getCatA(qid) {
+      if (!qid) return null;
+      if (qid.startsWith('r')) return 'pse_ose_roles';
+      if (qid.startsWith('v')) return 'vrportal';
+      if (qid.startsWith('a')) return 'activity_link';
+      if (qid.startsWith('o')) return 'order_link';
+      if (qid.startsWith('m')) return 'mini_cdp';
+      return null;
+    }
+
+    const personCatStats = {};
+    allResults.forEach(r => {
+      if (!r.answers) return;
+      if (!personCatStats[r.name]) personCatStats[r.name] = { role: r.role, cats: {} };
+      r.answers.forEach(a => {
+        const cat = getCatA(a.questionId || a.id);
+        if (!cat) return;
+        if (!personCatStats[r.name].cats[cat]) personCatStats[r.name].cats[cat] = { c: 0, t: 0 };
+        personCatStats[r.name].cats[cat].t++;
+        if (a.correct) personCatStats[r.name].cats[cat].c++;
+      });
+    });
+
+    const cats = ['pse_ose_roles', 'vrportal', 'activity_link', 'order_link', 'mini_cdp'];
+    const analysisRows = Object.entries(personCatStats).map(([name, pd]) => {
+      const catCells = cats.map(cat => {
+        const s = pd.cats[cat];
+        if (!s || s.t === 0) return '<td style="text-align:center;color:var(--muted);font-size:.8rem">—</td>';
+        const pct = Math.round(s.c / s.t * 100);
+        const color = pct >= 80 ? 'var(--success)' : pct >= 60 ? 'var(--warning)' : 'var(--danger)';
+        return `<td style="text-align:center;font-weight:600;color:${color};font-size:.85rem">${pct}%</td>`;
+      }).join('');
+      return `<tr><td><strong>${name}</strong><br><span style="font-size:.78rem;color:var(--muted)">${pd.role||''}</span></td>${catCells}</tr>`;
+    }).join('');
+
+    const catTipsA = {
+      pse_ose_roles: 'ทบทวนโครงสร้างทีมและบทบาทของ PSE / OSE / Sales Admin ให้ชัดเจน',
+      vrportal: 'ฝึกใช้งาน VRPortal จริง และทำความเข้าใจส่วน Partner / บัญชีและการเงิน',
+      activity_link: 'ทบทวนขั้นตอน ATL → Follow Up Plans → Activity Forms Set A/B/C ให้ครบ',
+      order_link: 'ทบทวนสถานะ Order และการตรวจสอบเอกสารผ่าน Order Link',
+      mini_cdp: 'ทบทวน 4 ขั้นตอน Mini CDP และการ Running/จัด Ranking ARCode ให้แม่น',
+    };
+
+    if (analysisRows) {
+      const analysisEl = document.getElementById('dash-per-person');
+      analysisEl.innerHTML += `
+        <div style="margin-top:20px">
+          <div style="font-weight:600;color:var(--primary);margin-bottom:10px">🎯 คะแนนรายหมวดต่อคน</div>
+          <div style="overflow-x:auto">
+            <table class="leaderboard">
+              <thead><tr>
+                <th>ชื่อ</th>
+                ${cats.map(c => `<th style="text-align:center">${catLabelsA[c]}</th>`).join('')}
+              </tr></thead>
+              <tbody>${analysisRows}</tbody>
+            </table>
+          </div>
+          <div style="font-size:.78rem;color:var(--muted);margin-top:8px">🟢 ≥80% &nbsp; 🟡 60-79% &nbsp; 🔴 &lt;60%</div>
+        </div>`;
+
+      // Individual analysis cards
+      const personCards = Object.entries(personCatStats).map(([name, pd]) => {
+        const catArr = cats
+          .filter(cat => pd.cats[cat] && pd.cats[cat].t > 0)
+          .map(cat => {
+            const s = pd.cats[cat];
+            return { cat, label: catLabelsA[cat], pct: Math.round(s.c / s.t * 100), correct: s.c, total: s.t, tip: catTipsA[cat] };
+          }).sort((a, b) => b.pct - a.pct);
+
+        if (!catArr.length) return '';
+
+        const strengths = catArr.filter(c => c.pct >= 70);
+        const weaknesses = catArr.filter(c => c.pct < 70);
+        const overallAvg = Math.round(catArr.reduce((s, c) => s + c.pct, 0) / catArr.length);
+        const overallColor = overallAvg >= 80 ? 'var(--success)' : overallAvg >= 60 ? 'var(--warning)' : 'var(--danger)';
+
+        const barsHTML = catArr.map(c => {
+          const color = c.pct >= 80 ? 'var(--success)' : c.pct >= 60 ? 'var(--warning)' : 'var(--danger)';
+          return `<div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:2px">
+              <span>${c.label}</span>
+              <span style="font-weight:700;color:${color}">${c.correct}/${c.total} (${c.pct}%)</span>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:999px;overflow:hidden">
+              <div style="width:${c.pct}%;height:100%;background:${color};border-radius:999px"></div>
+            </div>
+          </div>`;
+        }).join('');
+
+        const strengthHTML = strengths.length
+          ? strengths.map(c => `<div style="font-size:.83rem;margin-bottom:4px">✅ <strong>${c.label}</strong> — ${c.pct}%</div>`).join('')
+          : '<div style="font-size:.83rem;color:var(--muted)">— ยังไม่มีหมวดที่ผ่านเกณฑ์</div>';
+
+        const weakHTML = weaknesses.length
+          ? weaknesses.map(c => `<div style="border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:8px 10px;margin-bottom:6px;background:rgba(239,68,68,.03)">
+              <div style="font-size:.83rem;font-weight:600;color:var(--danger)">⚠️ ${c.label} — ${c.pct}%</div>
+              <div style="font-size:.78rem;color:var(--muted);margin-top:2px">💡 ${c.tip}</div>
+            </div>`).join('')
+          : '<div style="font-size:.83rem;color:var(--success)">✅ ทำได้ดีทุกหมวด!</div>';
+
+        return `<div style="border:1.5px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-weight:700;font-size:1rem">${name}</div>
+              <div style="font-size:.8rem;color:var(--muted)">${pd.role || ''}</div>
+            </div>
+            <div style="font-size:1.4rem;font-weight:800;color:${overallColor}">${overallAvg}%<span style="font-size:.75rem;font-weight:400;color:var(--muted);margin-left:4px">ค่าเฉลี่ยรายหมวด</span></div>
+          </div>
+          <div style="margin-bottom:14px">${barsHTML}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="font-weight:600;font-size:.85rem;margin-bottom:6px">💪 จุดแข็ง</div>
+              ${strengthHTML}
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:.85rem;margin-bottom:6px">📌 ควรพัฒนาเพิ่ม</div>
+              ${weakHTML}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      if (personCards) {
+        analysisEl.innerHTML += `
+          <div style="margin-top:24px">
+            <div style="font-weight:700;color:var(--primary);font-size:1rem;margin-bottom:12px">🧑‍💼 วิเคราะห์รายบุคคล</div>
+            ${personCards}
+          </div>`;
+      }
+    }
+  }
+
+  // ===== Practical Tasks in Dashboard =====
+  renderDashboardPractical();
+}
+
+function renderDashboardPractical() {
+  const el = document.getElementById('dash-practical-body');
+  if (!el) return;
+  const list = DB.get('practicalTasks', []);
+
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">ยังไม่มีข้อมูลงานปฏิบัติ</div>';
+    return;
+  }
+
+  // Summary stats
+  const totalPeople = list.length;
+  let allDonePeople = 0, expiredPeople = 0, pendingInTime = 0;
+  list.forEach(p => {
+    const defs = getPracticalTaskDefs(p.role);
+    const done = defs.length && defs.every(d => p.tasks[d.key]?.done);
+    if (done) { allDonePeople++; return; }
+    const ds = p.createdAt ? getPracticalDeadlineStatus(p.createdAt) : null;
+    if (ds?.expired) expiredPeople++; else pendingInTime++;
+  });
+
+  // All unique task defs in fixed order (PSE then OSE)
+  const allDefs = [...PRACTICAL_TASKS.PSE, ...PRACTICAL_TASKS.OSE];
+
+  el.innerHTML = `
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="background:var(--bg);border-radius:10px;padding:12px 20px;flex:1;min-width:100px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--primary)">${totalPeople}</div>
+        <div style="font-size:.78rem;color:var(--muted)">ทั้งหมด</div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:12px 20px;flex:1;min-width:100px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--success)">${allDonePeople}</div>
+        <div style="font-size:.78rem;color:var(--muted)">ครบทุกงาน ✅</div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:12px 20px;flex:1;min-width:100px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--warning)">${pendingInTime}</div>
+        <div style="font-size:.78rem;color:var(--muted)">ยังอยู่ในเวลา</div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:12px 20px;flex:1;min-width:100px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--danger)">${expiredPeople}</div>
+        <div style="font-size:.78rem;color:var(--muted)">หมดเวลา ⛔</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="leaderboard">
+        <thead>
+          <tr>
+            <th>ชื่อ</th>
+            <th>ทีม</th>
+            ${allDefs.map(d => `<th style="text-align:center;font-size:.78rem">${d.label.replace(' บน VRPortal','')}</th>`).join('')}
+            <th style="text-align:center">Deadline</th>
+            <th style="text-align:center">สถานะ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(p => {
+            const defs = getPracticalTaskDefs(p.role);
+            const allDone = defs.length && defs.every(d => p.tasks[d.key]?.done);
+            const ds = p.createdAt ? getPracticalDeadlineStatus(p.createdAt) : null;
+            const rowBg = allDone ? 'rgba(34,197,94,.04)' : ds?.expired ? 'rgba(239,68,68,.04)' : '';
+            const cells = allDefs.map(d => {
+              const isMyTask = defs.find(x => x.key === d.key);
+              if (!isMyTask) return '<td style="text-align:center;color:var(--muted)">—</td>';
+              const t = p.tasks[d.key] || {};
+              const done = t.done;
+              const autoTag = done && t.autoChecked ? '<br><span style="font-size:.65rem;color:#1e40af">🤖</span>' : '';
+              return `<td style="text-align:center">${done ? '✅' : '<span style="color:var(--muted)">⬜</span>'}${autoTag}</td>`;
+            }).join('');
+            return `<tr style="background:${rowBg}">
+              <td><strong>${p.name}</strong></td>
+              <td style="font-size:.82rem">${p.role || '-'}</td>
+              ${cells}
+              <td style="text-align:center;font-size:.78rem;color:${ds?.color||'var(--muted)'}">
+                ${ds ? ds.deadlineStr : '-'}
+                ${ds && !allDone ? `<br><span style="font-weight:600">${ds.expired ? '⛔ หมดเวลา' : `⏱ ${ds.daysLeft} วัน`}</span>` : ''}
+              </td>
+              <td style="text-align:center">
+                <span class="badge ${allDone?'badge-approved':ds?.expired?'badge-rejected':'badge-draft'}">
+                  ${allDone?'✅ ครบ':ds?.expired?'⛔ หมดเวลา':'⏳ รอ'}
+                </span>
+              </td>
+              <td><a href="https://uat.vrsteel.com/system/activity-link" target="_blank" class="btn btn-outline" style="font-size:.75rem;padding:4px 10px;text-decoration:none">🔗</a></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:.78rem;color:var(--muted);margin-top:10px">
+      🤖 ระบบตรวจอัตโนมัติทุก 09:00 น. — เปิด/ปิดได้ที่ <strong>Admin Panel → งานปฏิบัติ</strong> &nbsp;|&nbsp; ไอคอน 🤖 = ยืนยันโดยอัตโนมัติ
+    </div>`;
+}
+
+// ========== RESULT DETAIL MODAL ==========
+function showResultDetail(resultId) {
+  const results = DB.get('quizResults', []);
+  const r = results.find(x => x.id === resultId);
+  if (!r || !r.answers || !r.answers.length) return;
+
+  const date = new Date(r.date).toLocaleString('th-TH', { day:'numeric', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+  const color = r.score >= 80 ? 'var(--success)' : r.score >= 60 ? 'var(--warning)' : 'var(--danger)';
+
+  document.getElementById('result-detail-title').innerHTML =
+    `📊 ${r.name} — ${r.setTitle}<br><span style="font-size:.82rem;font-weight:400;color:var(--muted)">${r.role || ''} · ${date} · <span style="color:${color};font-weight:700">${r.score}%</span> (${r.correct}/${r.total} ข้อ)</span>`;
+
+  // Summary bar
+  const wrongCount = r.total - r.correct;
+  const summaryBar = `
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:8px 16px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:1.2rem">✅</span>
+        <div><div style="font-weight:700;color:var(--success);font-size:1.1rem">${r.correct}</div><div style="font-size:.75rem;color:var(--muted)">ตอบถูก</div></div>
+      </div>
+      <div style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:8px 16px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:1.2rem">❌</span>
+        <div><div style="font-weight:700;color:var(--danger);font-size:1.1rem">${wrongCount}</div><div style="font-size:.75rem;color:var(--muted)">ตอบผิด</div></div>
+      </div>
+    </div>`;
+
+  // Question list
+  const letters = ['A','B','C','D'];
+  const questionHTML = r.answers.map((a, i) => {
+    const isCorrect = a.correct;
+    const borderColor = isCorrect ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)';
+    const bgColor = isCorrect ? 'rgba(34,197,94,.05)' : 'rgba(239,68,68,.05)';
+    const icon = isCorrect ? '✅' : '❌';
+
+    const optionsHTML = (a.options || []).map((opt, oi) => {
+      let bg = 'transparent';
+      let fw = '400';
+      let prefix = letters[oi] ? `<strong>${letters[oi]}.</strong> ` : '';
+      let suffix = '';
+      if (oi === a.correctAnswer) {
+        bg = 'rgba(34,197,94,.15)';
+        fw = '600';
+        suffix = ' <span style="color:var(--success);font-size:.8rem">← เฉลย</span>';
+      }
+      if (oi === a.selected && oi !== a.correctAnswer) {
+        bg = 'rgba(239,68,68,.15)';
+        fw = '600';
+        suffix = ' <span style="color:var(--danger);font-size:.8rem">← คำตอบของคุณ</span>';
+      }
+      if (oi === a.selected && oi === a.correctAnswer) {
+        suffix = ' <span style="color:var(--success);font-size:.8rem">← คำตอบของคุณ (ถูก)</span>';
+      }
+      return `<div style="padding:5px 10px;border-radius:6px;background:${bg};font-weight:${fw};margin:3px 0;font-size:.85rem">${prefix}${opt}${suffix}</div>`;
+    }).join('');
+
+    const skipped = a.selected === -1 || a.selected === undefined;
+    const userAnswerNote = skipped
+      ? '<div style="font-size:.8rem;color:var(--muted);margin-top:4px">⚠️ ข้ามข้อนี้ (หมดเวลา)</div>'
+      : '';
+
+    const explanationHTML = a.explanation
+      ? `<div style="margin-top:8px;padding:8px 10px;background:rgba(99,102,241,.08);border-left:3px solid var(--accent);border-radius:4px;font-size:.82rem;color:var(--text-secondary)"><strong>💡 คำอธิบาย:</strong> ${a.explanation}</div>`
+      : '';
+
+    return `<div style="border:1px solid ${borderColor};background:${bgColor};border-radius:10px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
+        <span style="font-size:1rem;flex-shrink:0">${icon}</span>
+        <div style="font-weight:600;font-size:.88rem;line-height:1.5">${i+1}. ${a.text}</div>
+      </div>
+      <div style="padding-left:4px">${optionsHTML}</div>
+      ${userAnswerNote}
+      ${explanationHTML}
+    </div>`;
+  }).join('');
+
+  document.getElementById('result-detail-body').innerHTML = summaryBar + questionHTML;
+  document.getElementById('modal-result-detail').classList.add('open');
+}
+
+// ========== EXPORT CSV ==========
+function exportCSV() {
+  const results = DB.get('quizResults', []);
+  if (!results.length) { alert('ยังไม่มีข้อมูลให้ export'); return; }
+  const header = 'ชื่อ,ทีม,ชุดข้อสอบ,คะแนน,ถูก,ผิด,ผล,วันที่\n';
+  const rows = results.map(r =>
+    `"${r.name}","${r.role || ''}","${r.setTitle}","${r.score}%","${r.correct}","${r.total - r.correct}","${r.passed ? 'ผ่าน' : 'ไม่ผ่าน'}","${new Date(r.date).toLocaleString('th-TH')}"`
+  ).join('\n');
+  const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `quiz-results-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ========== GOOGLE SHEETS SYNC ==========
+function syncToSheets(result) {
+  const gasUrl = DB.get('gasUrl', '');
+  if (!gasUrl) return;
+  fetch(gasUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'addResult', data: result }),
+    mode: 'no-cors',
+  }).catch(() => {}); // silent fail
+}
+
+// ========== MODAL ==========
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ========== INIT ==========
+init();
+</script>
+</body>
+</html>
